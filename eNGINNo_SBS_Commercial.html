@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>eNGINNo SBS — Commercial Module</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0D1117;--bg2:#161B22;--bg3:#1C2333;--bg4:#21262D;
+  --border:#30363D;--border2:#3D444D;
+  --orange:#F97316;--orange2:#EA6C0A;--orange-dim:rgba(249,115,22,0.12);
+  --green:#22C55E;--green-dim:rgba(34,197,94,0.12);
+  --yellow:#EAB308;--yellow-dim:rgba(234,179,8,0.12);
+  --red:#EF4444;--red-dim:rgba(239,68,68,0.12);
+  --blue:#3B82F6;--blue-dim:rgba(59,130,246,0.12);
+  --purple:#A855F7;--purple-dim:rgba(168,85,247,0.12);
+  --teal:#14B8A6;--teal-dim:rgba(20,184,166,0.12);
+  --cyan:#06B6D4;--cyan-dim:rgba(6,182,212,0.12);
+  --text:#E6EDF3;--text2:#8B949E;--text3:#6E7681;
+  --sidebar-w:230px;--header-h:54px;
+  --font:'Sarabun',sans-serif;--font-d:'Rajdhani',sans-serif;--font-m:'JetBrains Mono',monospace;
+  --r:8px;--r-lg:12px;
+  --mod-color:var(--orange);--mod-dim:var(--orange-dim);
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+/* ── LAYOUT ── */
+#sidebar{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;overflow-y:auto}
+.sb-header{padding:12px 14px;border-bottom:1px solid var(--border)}
+.sb-brand{font-family:var(--font-d);font-size:9px;font-weight:700;letter-spacing:2px;color:var(--orange);text-transform:uppercase}
+.sb-mod{font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--text);line-height:1.2}
+.sb-mod span{color:var(--orange)}
+.sb-sub{font-size:9px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.sb-building{padding:8px 12px;background:var(--bg3);border-bottom:1px solid var(--border)}
+.building-sel{width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:var(--r);padding:6px 10px;font-size:12px;font-family:var(--font);color:var(--text);outline:none}
+.sb-section{padding:8px 12px 3px;font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--r);margin:1px 6px;cursor:pointer;font-size:12px;color:var(--text2);transition:all .15s;border:1px solid transparent}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--orange-dim);color:var(--orange);border-color:rgba(249,115,22,.25)}
+.nav-icon{font-size:13px;width:16px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;min-width:16px;text-align:center}
+.strategy-nav{padding:6px 8px}
+.str-btn{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:var(--r);margin-bottom:3px;cursor:pointer;font-size:12px;font-weight:600;border:1px solid;transition:all .2s}
+.str-btn.facility{background:var(--orange-dim);border-color:rgba(249,115,22,.3);color:var(--orange)}
+.str-btn.energy{background:var(--green-dim);border-color:rgba(34,197,94,.3);color:var(--green)}
+.str-btn.security{background:var(--red-dim);border-color:rgba(239,68,68,.3);color:var(--red)}
+.str-btn.academy{background:var(--purple-dim);border-color:rgba(168,85,247,.3);color:var(--purple)}
+.str-btn.active,.str-btn:hover{filter:brightness(1.3)}
+.sb-footer{margin-top:auto;padding:10px 12px;border-top:1px solid var(--border);font-size:10px;color:var(--text3)}
+.back-btn{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:var(--r);cursor:pointer;font-size:11px;color:var(--orange);margin-bottom:6px;transition:all .15s;background:var(--orange-dim);border:1px solid rgba(249,115,22,.2)}
+.back-btn:hover{background:rgba(249,115,22,.2)}
+#main{margin-left:var(--sidebar-w);min-height:100vh}
+#topbar{position:sticky;top:0;height:var(--header-h);background:rgba(13,17,23,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;z-index:50}
+.tb-title{font-family:var(--font-d);font-size:17px;font-weight:600}
+.tb-bread{font-size:11px;color:var(--text3)}
+.tb-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.strategy-indicator{display:flex;gap:6px;align-items:center}
+.str-dot{width:8px;height:8px;border-radius:50%}
+#content{padding:20px}
+.view{display:none}.view.active{display:block}
+/* ── COMPONENTS ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px}
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}
+.kpi-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.orange::before{background:var(--orange)}.kpi.green::before{background:var(--green)}
+.kpi.blue::before{background:var(--blue)}.kpi.teal::before{background:var(--teal)}
+.kpi.yellow::before{background:var(--yellow)}.kpi.red::before{background:var(--red)}
+.kpi.purple::before{background:var(--purple)}.kpi.cyan::before{background:var(--cyan)}
+.kpi-label{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
+.kpi-value{font-family:var(--font-d);font-size:26px;font-weight:700;line-height:1}
+.kpi-sub{font-size:10px;color:var(--text3);margin-top:3px}
+.kpi-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:24px;opacity:.12}
+.section-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.section-title{font-family:var(--font-d);font-size:20px;font-weight:700}
+.section-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.flex{display:flex}.fc{align-items:center}.jb{justify-content:space-between}.gap-8{gap:8px}.gap-12{gap:12px}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}
+.fw-6{font-weight:600}.fw-7{font-weight:700}.ff-d{font-family:var(--font-d)}.ff-m{font-family:var(--font-m)}
+.t-orange{color:var(--orange)}.t-green{color:var(--green)}.t-blue{color:var(--blue)}.t-teal{color:var(--teal)}
+.t-yellow{color:var(--yellow)}.t-red{color:var(--red)}.t-purple{color:var(--purple)}.t-muted{color:var(--text3)}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--r);font-size:12px;font-family:var(--font);cursor:pointer;border:1px solid;transition:all .15s;font-weight:500}
+.btn-primary{background:var(--orange);border-color:var(--orange);color:#fff}.btn-primary:hover{background:var(--orange2)}
+.btn-secondary{background:transparent;border-color:var(--border2);color:var(--text2)}.btn-secondary:hover{background:var(--bg3);color:var(--text)}
+.btn-success{background:transparent;border-color:var(--green);color:var(--green)}.btn-success:hover{background:var(--green-dim)}
+.btn-danger{background:transparent;border-color:var(--red);color:var(--red)}.btn-danger:hover{background:var(--red-dim)}
+.btn-sm{padding:4px 10px;font-size:11px}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+.bg-green{background:var(--green-dim);color:var(--green)}.bg-yellow{background:var(--yellow-dim);color:var(--yellow)}
+.bg-red{background:var(--red-dim);color:var(--red)}.bg-blue{background:var(--blue-dim);color:var(--blue)}
+.bg-orange{background:var(--orange-dim);color:var(--orange)}.bg-teal{background:var(--teal-dim);color:var(--teal)}
+.bg-purple{background:var(--purple-dim);color:var(--purple)}.bg-gray{background:rgba(139,148,158,.12);color:var(--text2)}
+.bg-cyan{background:var(--cyan-dim);color:var(--cyan)}
+.tag{display:inline-block;background:var(--bg4);border:1px solid var(--border);border-radius:4px;padding:1px 7px;font-size:10px;font-family:var(--font-m);color:var(--text2)}
+.table-wrap{overflow-x:auto;border-radius:var(--r-lg);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--bg3);padding:9px 12px;text-align:left;font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px;width:600px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.modal-lg{width:780px}
+.modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.modal-title{font-family:var(--font-d);font-size:17px;font-weight:600}
+.form-group{margin-bottom:12px}
+.form-label{display:block;font-size:10px;font-weight:700;color:var(--text3);margin-bottom:4px;letter-spacing:.5px;text-transform:uppercase}
+.form-control{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:7px 11px;font-size:12px;font-family:var(--font);color:var(--text);outline:none;transition:border .15s}
+.form-control:focus{border-color:var(--orange)}
+select.form-control option{background:var(--bg3)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.metric-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)}
+.metric-row:last-child{border-bottom:none}
+.chart-wrap{position:relative;height:220px}
+.progress{height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.progress-bar{height:100%;border-radius:3px;transition:width .4s}
+.alert-box{padding:10px 14px;border-radius:var(--r);margin-bottom:10px;font-size:12px;border-left:3px solid}
+.alert-warn{background:var(--yellow-dim);border-color:var(--yellow)}
+.alert-info{background:var(--blue-dim);border-color:var(--blue)}
+.tabs{display:flex;gap:2px;background:var(--bg3);border-radius:var(--r);padding:3px;margin-bottom:16px;flex-wrap:wrap}
+.tab{padding:6px 12px;border-radius:6px;font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s;font-weight:500}
+.tab.active{background:var(--bg2);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.4)}
+/* 4-Ring */
+.ring-bar{display:flex;gap:8px;flex-wrap:wrap}
+.ring-item{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:4px 10px;font-size:11px}
+.ring-dot{width:8px;height:8px;border-radius:50%}
+.r-ok{background:var(--green);box-shadow:0 0 5px var(--green)}
+.r-warn{background:var(--yellow);animation:blink 1.5s infinite}
+.r-crit{background:var(--red);animation:blink .8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+/* Building Critical Status */
+.floor-svg-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;overflow:auto}
+.floor-btn{padding:4px 10px;border-radius:12px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);transition:all .15s}
+.floor-btn.active{background:var(--orange-dim);border-color:var(--orange);color:var(--orange)}
+/* Tenant cards */
+.tenant-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;transition:all .2s}
+.tenant-card:hover{border-color:var(--orange)}
+/* Parking grid */
+.park-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:5px}
+.park-slot{height:36px;border-radius:5px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;cursor:pointer;transition:all .15s}
+.park-slot.free{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+.park-slot.used{background:var(--red-dim);border-color:var(--red);color:var(--red)}
+.park-slot.vip{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+@media(max-width:768px){#sidebar{display:none}#main{margin-left:0}}
+</style>
+</head>
+<body>
+
+<!-- ════ SIDEBAR ════ -->
+<nav id="sidebar">
+  <div class="sb-header">
+    <div class="sb-brand">PSD ● eNGINNo SBS</div>
+    <div class="sb-mod">🏢 <span>Commercial</span> Module</div>
+    <div class="sb-sub">v1.0 — 2026</div>
+  </div>
+  <div class="sb-building">
+    <select class="building-sel" id="building-sel" onchange="changeBuilding(this.value)">
+      <option value="BHIRAJBURI">🏢 BHIRAJBURI Commercial</option>
+      <option value="TOWNSHIP">🏘 PSD Township Hub</option>
+      <option value="BITEC">🏛 BITEC Bangna Hall</option>
+    </select>
+  </div>
+
+  <div class="sb-section">Overview</div>
+  <div class="nav-item active" onclick="showView('dashboard')"><span class="nav-icon">📊</span>Dashboard</div>
+  <div class="nav-item" onclick="showView('bcs')"><span class="nav-icon">🗺</span>Building Critical Status<span class="nav-badge" id="nb-bcs">!</span></div>
+
+  <div class="sb-section">🔧 Facility & Maintenance</div>
+  <div class="nav-item" onclick="showView('assets')"><span class="nav-icon">⚙</span>Asset Register (ALC)</div>
+  <div class="nav-item" onclick="showView('wr')"><span class="nav-icon">🔧</span>Work Request (WR)<span class="nav-badge" id="nb-wr">0</span></div>
+  <div class="nav-item" onclick="showView('ppm')"><span class="nav-icon">📅</span>Preventive Maint. (PPM)</div>
+  <div class="nav-item" onclick="showView('opm')"><span class="nav-icon">⚡</span>Operation (OPT/OEE)</div>
+  <div class="nav-item" onclick="showView('ma')"><span class="nav-icon">📄</span>MA Contract</div>
+  <div class="nav-item" onclick="showView('inv')"><span class="nav-icon">📦</span>Inventory (คลังวัสดุ)</div>
+
+  <div class="sb-section">🌱 Energy & Sustainability</div>
+  <div class="nav-item" onclick="showView('energy')"><span class="nav-icon">⚡</span>Energy Monitor</div>
+  <div class="nav-item" onclick="showView('carbon')"><span class="nav-icon">🌿</span>Carbon Footprint</div>
+  <div class="nav-item" onclick="showView('esg')"><span class="nav-icon">📊</span>ESG KPI Report</div>
+
+  <div class="sb-section">🛡 Security & Safety</div>
+  <div class="nav-item" onclick="showView('access')"><span class="nav-icon">🔒</span>Access Control</div>
+  <div class="nav-item" onclick="showView('incident')"><span class="nav-icon">🚨</span>Incident Report</div>
+  <div class="nav-item" onclick="showView('ptw')"><span class="nav-icon">📝</span>Permit to Work (PTW)</div>
+  <div class="nav-item" onclick="showView('parking')"><span class="nav-icon">🚗</span>Parking Management</div>
+
+  <div class="sb-section">🎓 Staff Academy</div>
+  <div class="nav-item" onclick="showView('training')"><span class="nav-icon">📚</span>Training Calendar</div>
+  <div class="nav-item" onclick="showView('competency')"><span class="nav-icon">🧠</span>Competency Matrix</div>
+  <div class="nav-item" onclick="showView('cert')"><span class="nav-icon">📜</span>Certification Tracker</div>
+
+  <div class="sb-section">Commercial Specific</div>
+  <div class="nav-item" onclick="showView('tenant')"><span class="nav-icon">👥</span>Tenant Management</div>
+  <div class="nav-item" onclick="showView('retail')"><span class="nav-icon">🏬</span>Retail Space</div>
+  <div class="nav-item" onclick="showView('event')"><span class="nav-icon">🎪</span>Event Hall</div>
+
+  <div class="sb-section">AI & Analytics</div>
+  <div class="nav-item" onclick="showView('ai')"><span class="nav-icon">🤖</span>AI Analytics</div>
+  <div class="nav-item" onclick="showView('report')"><span class="nav-icon">📈</span>Reports</div>
+
+  <div class="sb-footer">
+    <div class="back-btn" onclick="goBack()">← กลับ Module Hub</div>
+    <div style="color:var(--orange);font-family:var(--font-d);font-size:10px;font-weight:700">PSD Engineering Dept.</div>
+    <div style="font-size:10px">eNGINNo SBS v1.0 · 2026</div>
+  </div>
+</nav>
+
+<!-- ════ MAIN ════ -->
+<main id="main">
+  <div id="topbar">
+    <div>
+      <div class="tb-title" id="tb-title"><span style="color:var(--orange)">🏢 Commercial</span> — Dashboard</div>
+      <div class="tb-bread" id="tb-bread">eNGINNo SBS › Commercial › BHIRAJBURI</div>
+    </div>
+    <div class="tb-actions">
+      <div class="ring-bar">
+        <div class="ring-item"><div class="ring-dot r-ok" id="r1"></div>Facility</div>
+        <div class="ring-item"><div class="ring-dot r-ok" id="r2"></div>Energy</div>
+        <div class="ring-item"><div class="ring-dot r-ok" id="r3"></div>Security</div>
+        <div class="ring-item"><div class="ring-dot r-ok" id="r4"></div>Academy</div>
+      </div>
+      <span id="clock" style="font-family:var(--font-m);font-size:10px;color:var(--text3)"></span>
+      <button class="btn btn-primary btn-sm" onclick="showView('wr');openModal('addWRModal')">+ Work Request</button>
+    </div>
+  </div>
+
+  <div id="content">
+
+<!-- ══════════ DASHBOARD ══════════ -->
+<div id="view-dashboard" class="view active">
+  <div class="section-hdr">
+    <div><div class="section-title">📊 Commercial Module Dashboard</div><div class="section-sub">BHIRAJBURI · Township · BITEC — 4-Strategy Overview · 2026</div></div>
+    <div class="flex gap-8"><button class="btn btn-secondary btn-sm" onclick="refreshDash()">↻ Refresh</button><button class="btn btn-secondary btn-sm" onclick="exportDash()">⬇ Export</button></div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi orange"><div class="kpi-label">Total Assets</div><div class="kpi-value t-orange" id="d-assets">0</div><div class="kpi-sub">อุปกรณ์อาคาร</div><div class="kpi-icon">⚙</div></div>
+    <div class="kpi red"><div class="kpi-label">Open WR</div><div class="kpi-value t-red" id="d-wr">0</div><div class="kpi-sub">งานซ่อมค้าง</div><div class="kpi-icon">🔧</div></div>
+    <div class="kpi yellow"><div class="kpi-label">PPM Due</div><div class="kpi-value t-yellow" id="d-ppm">0</div><div class="kpi-sub">แผน PM เดือนนี้</div><div class="kpi-icon">📅</div></div>
+    <div class="kpi teal"><div class="kpi-label">Energy (kWh/d)</div><div class="kpi-value t-teal" id="d-kwh">0</div><div class="kpi-sub">พลังงานวันนี้</div><div class="kpi-icon">⚡</div></div>
+    <div class="kpi green"><div class="kpi-label">Tenant Active</div><div class="kpi-value t-green" id="d-tenant">0</div><div class="kpi-sub">ผู้เช่าทั้งหมด</div><div class="kpi-icon">👥</div></div>
+  </div>
+  <div class="kpi-grid-4">
+    <div class="kpi blue"><div class="kpi-label">Avg MTTR</div><div class="kpi-value t-blue" id="d-mttr">—h</div><div class="kpi-sub">ชั่วโมงซ่อมเฉลี่ย</div></div>
+    <div class="kpi purple"><div class="kpi-label">Parking Occ.</div><div class="kpi-value t-purple" id="d-park">0%</div><div class="kpi-sub">ที่จอดรถที่ใช้งาน</div></div>
+    <div class="kpi cyan"><div class="kpi-label">Monthly Revenue</div><div class="kpi-value t-teal" style="font-size:18px" id="d-rev">฿0</div><div class="kpi-sub">รายได้ค่าเช่า</div></div>
+    <div class="kpi green"><div class="kpi-label">Safe Days</div><div class="kpi-value t-green" id="d-safe">180</div><div class="kpi-sub">วันปลอดอุบัติเหตุ</div></div>
+  </div>
+
+  <div class="grid-2 mb-16">
+    <div class="card"><div class="ff-d fw-6" style="font-size:14px;margin-bottom:12px">🔧 WR Status & MTTR Trend</div><div class="chart-wrap"><canvas id="c-wr"></canvas></div></div>
+    <div class="card"><div class="ff-d fw-6" style="font-size:14px;margin-bottom:12px">⚡ Energy 7-Day Trend</div><div class="chart-wrap"><canvas id="c-energy"></canvas></div></div>
+  </div>
+  <div class="grid-3">
+    <div class="card"><div class="ff-d fw-6" style="font-size:14px;margin-bottom:10px">⚙ Asset Condition</div><div class="chart-wrap" style="height:180px"><canvas id="c-asset"></canvas></div></div>
+    <div class="card"><div class="ff-d fw-6" style="font-size:14px;margin-bottom:10px">🏬 Tenant Occupancy</div>
+      <div id="tenant-occ-list"></div>
+    </div>
+    <div class="card"><div class="ff-d fw-6" style="font-size:14px;margin-bottom:10px">🔔 Active Alerts</div><div id="alerts-dash"></div></div>
+  </div>
+</div>
+
+<!-- ══════════ BUILDING CRITICAL STATUS ══════════ -->
+<div id="view-bcs" class="view">
+  <div class="section-hdr">
+    <div><div class="section-title">🗺 Building Critical Status</div><div class="section-sub">Real-time 4-Ring System · WR · OPT · PPM · MA</div></div>
+    <div class="flex gap-8">
+      <button class="btn btn-secondary btn-sm" onclick="refreshBCS()">↻ Refresh</button>
+      <button class="btn btn-secondary btn-sm" onclick="exportCSV()">📊 Export CSV</button>
+    </div>
+  </div>
+  <div class="flex gap-8 mb-12 flex-wrap">
+    <button class="floor-btn active" id="fb-roof" onclick="setFloor('roof',this)">Roof</button>
+    <button class="floor-btn" id="fb-l3"   onclick="setFloor('l3',this)">ชั้น 3</button>
+    <button class="floor-btn" id="fb-l2"   onclick="setFloor('l2',this)">ชั้น 2</button>
+    <button class="floor-btn" id="fb-l1"   onclick="setFloor('l1',this)">ชั้น 1 (G/F)</button>
+    <button class="floor-btn" id="fb-b1"   onclick="setFloor('b1',this)">ชั้น B1</button>
+    <button class="floor-btn" id="fb-b2"   onclick="setFloor('b2',this)">ชั้น B2</button>
+  </div>
+  <div class="grid-2">
+    <div class="floor-svg-wrap">
+      <svg id="floor-svg" viewBox="0 0 600 360" style="width:100%;min-height:220px">
+        <!-- Floor plan outline -->
+        <rect x="10" y="10" width="580" height="340" rx="8" fill="#161B22" stroke="#30363D" stroke-width="1.5"/>
+        <text x="30" y="36" font-family="Rajdhani" font-size="14" fill="#F97316" font-weight="700" id="floor-label">ROOF LEVEL</text>
+        <!-- Dynamic asset dots rendered by JS -->
+        <g id="asset-dots"></g>
+      </svg>
+      <div class="flex gap-12 mt-8" style="font-size:10px;color:var(--text3)">
+        <span>🟢 ปกติ</span><span>🟡 แจ้งเตือน</span><span>🔴 Critical</span><span>⚫ Inactive</span>
+      </div>
+    </div>
+    <div>
+      <div class="card mb-12">
+        <div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">🔵 4-Ring Status</div>
+        <div class="metric-row"><span>วง 1 — WR</span><span class="badge bg-green" id="ring-wr-status">✅ ปกติ</span></div>
+        <div class="metric-row"><span>วง 2 — OPT/Availability</span><span class="badge bg-green" id="ring-opm-status">✅ ≥98%</span></div>
+        <div class="metric-row"><span>วง 3 — PPM/Reliability</span><span class="badge bg-green" id="ring-ppm-status">✅ ≥90%</span></div>
+        <div class="metric-row"><span>วง 4 — MA Contract</span><span class="badge bg-green" id="ring-ma-status">✅ ปกติ</span></div>
+      </div>
+      <div class="card">
+        <div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">⚠ Critical / Warning Assets</div>
+        <div id="crit-assets-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ ASSETS ══════════ -->
+<div id="view-assets" class="view">
+  <div class="section-hdr">
+    <div><div class="section-title">⚙ Asset Register (ALC)</div><div class="section-sub">ทะเบียนสินทรัพย์ · Lifecycle · NBV · Spec</div></div>
+    <div class="flex gap-8">
+      <select class="form-control btn-sm" style="width:130px" onchange="filterAssetSys(this.value)" id="filter-sys">
+        <option value="">ทุกระบบ</option>
+        <option>AC</option><option>EE</option><option>EL</option><option>FA</option><option>FP</option><option>BAS</option><option>SN</option><option>TR</option><option>PL</option>
+      </select>
+      <select class="form-control btn-sm" style="width:120px" onchange="filterAssetStatus(this.value)">
+        <option value="">ทุกสถานะ</option>
+        <option value="active">🟢 Active</option><option value="warning">🟡 Warning</option><option value="critical">🔴 Critical</option>
+      </select>
+      <button class="btn btn-secondary btn-sm" onclick="exportAssets()">⬇ Export</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('addAssetModal')">+ เพิ่ม Asset</button>
+    </div>
+  </div>
+  <div class="kpi-grid-4">
+    <div class="kpi orange"><div class="kpi-label">Total</div><div class="kpi-value t-orange" id="a-total">0</div></div>
+    <div class="kpi green"><div class="kpi-label">Active</div><div class="kpi-value t-green" id="a-active">0</div></div>
+    <div class="kpi yellow"><div class="kpi-label">Warning</div><div class="kpi-value t-yellow" id="a-warn">0</div></div>
+    <div class="kpi red"><div class="kpi-label">Critical/EOL</div><div class="kpi-value t-red" id="a-crit">0</div></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Asset ID</th><th>ชื่อ / Name</th><th>ระบบ</th><th>Location</th><th>Brand/Model</th><th>Serial</th><th>Install</th><th>Life(yr)</th><th>Cost(฿)</th><th>NBV(฿)</th><th>Lifecycle</th><th>สถานะ</th><th>Actions</th></tr></thead>
+      <tbody id="assets-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════ WR ══════════ -->
+<div id="view-wr" class="view">
+  <div class="section-hdr">
+    <div><div class="section-title">🔧 Work Request (WR)</div><div class="section-sub">แจ้งซ่อม → รับงาน → ดำเนินการ → ปิดงาน · SLA · MTTR</div></div>
+    <div class="flex gap-8">
+      <select class="form-control btn-sm" style="width:120px" onchange="filterWRStatus(this.value)">
+        <option value="">ทุกสถานะ</option><option value="open">Open</option><option value="inprog">In Progress</option><option value="closed">Closed</option>
+      </select>
+      <select class="form-control btn-sm" style="width:110px" onchange="filterWRPriority(this.value)">
+        <option value="">ทุก Priority</option><option value="critical">🔴 Critical</option><option value="high">🟡 High</option><option value="normal">🟢 Normal</option>
+      </select>
+      <button class="btn btn-secondary btn-sm" onclick="exportWR()">⬇ Export</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('addWRModal')">+ แจ้งซ่อม</button>
+    </div>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi orange"><div class="kpi-label">Open</div><div class="kpi-value t-orange" id="wr-open">0</div></div>
+    <div class="kpi blue"><div class="kpi-label">In Progress</div><div class="kpi-value t-blue" id="wr-ip">0</div></div>
+    <div class="kpi green"><div class="kpi-label">Closed</div><div class="kpi-value t-green" id="wr-closed">0</div></div>
+    <div class="kpi teal"><div class="kpi-label">Avg MTTR (h)</div><div class="kpi-value t-teal" id="wr-mttr">—</div></div>
+    <div class="kpi red"><div class="kpi-label">Critical Open</div><div class="kpi-value t-red" id="wr-crit">0</div></div>
+  </div>
+  <div class="grid-2 mb-16">
+    <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">WR Monthly Trend</div><div class="chart-wrap" style="height:180px"><canvas id="c-wr-trend"></canvas></div></div>
+    <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">MTTR by System</div><div class="chart-wrap" style="height:180px"><canvas id="c-mttr"></canvas></div></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>WR ID</th><th>Asset</th><th>Type</th><th>ปัญหา</th><th>Priority</th><th>ผู้แจ้ง</th><th>วันที่</th><th>ช่าง</th><th>MTTR(h)</th><th>ต้นทุน(฿)</th><th>สถานะ</th><th>Action</th></tr></thead>
+      <tbody id="wr-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════ PPM ══════════ -->
+<div id="view-ppm" class="view">
+  <div class="section-hdr">
+    <div><div class="section-title">📅 Preventive Maintenance (PPM)</div><div class="section-sub">แผน PM · MTBF · PM Compliance · Reliability</div></div>
+    <button class="btn btn-primary btn-sm" onclick="openModal('addPPMModal')">+ เพิ่มแผน PM</button>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi blue"><div class="kpi-label">Total PM</div><div class="kpi-value t-blue" id="ppm-total">0</div></div>
+    <div class="kpi yellow"><div class="kpi-label">Planned</div><div class="kpi-value t-yellow" id="ppm-plan">0</div></div>
+    <div class="kpi green"><div class="kpi-label">Done</div><div class="kpi-value t-green" id="ppm-done">0</div></div>
+    <div class="kpi red"><div class="kpi-label">Overdue</div><div class="kpi-value t-red" id="ppm-over">0</div></div>
+    <div class="kpi teal"><div class="kpi-label">PM Compliance</div><div class="kpi-value t-teal" id="ppm-comp">0%</div></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>PPM ID</th><th>Asset</th><th>งาน PM</th><th>ระบบ</th><th>ความถี่</th><th>วันแผน</th><th>วันจริง</th><th>ผู้รับผิดชอบ</th><th>MTBF(h)</th><th>ค่าใช้จ่าย(฿)</th><th>สถานะ</th><th>Action</th></tr></thead>
+      <tbody id="ppm-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════ OPERATION ══════════ -->
+<div id="view-opm" class="view">
+  <div class="section-hdr">
+    <div><div class="section-title">⚡ Operation Management (OEE)</div><div class="section-sub">OEE · Availability · Downtime · Running Hours</div></div>
+    <button class="btn btn-primary btn-sm" onclick="openModal('addOPMModal')">+ บันทึก</button>
+  </div>
+  <div class="kpi-grid-4">
+    <div class="kpi green"><div class="kpi-label">Running Assets</div><div class="kpi-value t-green" id="opm-run">0</div></div>
+    <div class="kpi blue"><div class="kpi-label">Avg OEE</div><div class="kpi-value t-blue" id="opm-oee">82%</div></div>
+    <div class="kpi yellow"><div class="kpi-label">Downtime Today</div><div class="kpi-value t-yellow" id="opm-down">0h</div></div>
+    <div class="kpi teal"><div class="kpi-label">Total Run Hrs</div><div class="kpi-value t-teal" id="opm-hrs">0</div></div>
+  </div>
+  <div class="grid-2">
+    <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">OEE Trend</div><div class="chart-wrap" style="height:200px"><canvas id="c-oee"></canvas></div></div>
+    <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">Downtime by System</div><div class="chart-wrap" style="height:200px"><canvas id="c-down"></canvas></div></div>
+  </div>
+</div>
+
+<!-- ══════════ MA CONTRACT ══════════ -->
+<div id="view-ma" class="view">
+  <div class="section-hdr">
+    <div><div class="section-title">📄 MA Contract</div><div class="section-sub">สัญญาบำรุงรักษา · Vendor · SLA · วันหมดอายุ</div></div>
+    <button class="btn btn-primary btn-sm" onclick="openModal('addMAModal')">+ เพิ่มสัญญา</button>
+  </div>
+  <div class="kpi-grid-4">
+    <div class="kpi green"><div class="kpi-label">Active</div><div class="kpi-value t-green" id="ma-active">0</div></div>
+    <div class="kpi yellow"><div class="kpi-label">Expiring Soon</div><div class="kpi-value t-yellow" id="ma-exp">0</div></div>
+    <div class="kpi red"><div class="kpi-label">Expired</div><div class="kpi-value t-red" id="ma-over">0</div></div>
+    <div class="kpi teal"><div class="kpi-label">Total Value</div><div class="kpi-value t-teal" style="font-size:18px" id="ma-val">฿0</div></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>MA ID</th><th>Asset</th><th>Vendor</th><th>Type</th><th>เริ่ม</th><th>สิ้นสุด</th><th>เหลือ(วัน)</th><th>มูลค่า(฿)</th><th>SLA(h)</th><th>สถานะ</th><th>Action</th></tr></thead>
+      <tbody id="ma-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════ INVENTORY ══════════ -->
+<div id="view-inv" class="view">
+  <div class="section-hdr">
+    <div><div class="section-title">📦 Inventory (คลังวัสดุ)</div><div class="section-sub">อะไหล่ · Min/Max · เบิก-จ่าย · Stock Alert</div></div>
+    <div class="flex gap-8">
+      <button class="btn btn-secondary btn-sm" onclick="exportInv()">⬇ Export</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('addInvModal')">+ เพิ่มรายการ</button>
+    </div>
+  </div>
+  <div class="kpi-grid-4">
+    <div class="kpi blue"><div class="kpi-label">รายการทั้งหมด</div><div class="kpi-value t-blue" id="inv-total">0</div></div>
+    <div class="kpi green"><div class="kpi-label">พอเพียง</div><div class="kpi-value t-green" id="inv-ok">0</div></div>
+    <div class="kpi yellow"><div class="kpi-label">ใกล้หมด</div><div class="kpi-value t-yellow" id="inv-low">0</div></div>
+    <div class="kpi teal"><div class="kpi-label">มูลค่าคลัง</div><div class="kpi-value t-teal" style="font-size:18px" id="inv-val">฿0</div></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Code</th><th>ชื่อ</th><th>ประเภท</th><th>Unit</th><th>คงเหลือ</th><th>Min</th><th>Max</th><th>ราคา/Unit</th><th>มูลค่า</th><th>สถานะ</th><th>Action</th></tr></thead>
+      <tbody id="inv-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════ ENERGY ══════════ -->
+<div id="view-energy" class="view">
+  <div class="section-hdr">
+    <div><div class="section-title">⚡ Energy Monitor</div><div class="section-sub">kWh · Cost · Peak Demand · Solar · IoT Meter</div></div>
+    <div class="flex gap-8">
+      <button class="btn btn-secondary btn-sm" onclick="openModal('addEnergyModal')">+ บันทึกมิเตอร์</button>
+      <button class="btn btn-primary btn-sm" onclick="exportEnergy()">⬇ Export</button>
+    </div>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi teal"><div class="kpi-label">kWh Today</div><div class="kpi-value t-teal" id="e-today">0</div><div class="kpi-sub">พลังงานวันนี้</div></div>
+    <div class="kpi blue"><div class="kpi-label">kWh Month</div><div class="kpi-value t-blue" id="e-month">0</div><div class="kpi-sub">เดือนนี้</div></div>
+    <div class="kpi orange"><div class="kpi-label">Cost Today (฿)</div><div class="kpi-value t-orange" style="font-size:18px" id="e-cost">฿0</div><div class="kpi-sub">ค่าไฟวันนี้</div></div>
+    <div class="kpi green"><div class="kpi-label">Solar (kWh)</div><div class="kpi-value t-green" id="e-solar">0</div><div class="kpi-sub">พลังงานแสงอาทิตย์</div></div>
+    <div class="kpi yellow"><div class="kpi-label">Peak Demand (kW)</div><div class="kpi-value t-yellow" id="e-peak">0</div><div class="kpi-sub">ช่วงที่ใช้สูงสุด</div></div>
+  </div>
+  <div class="grid-2">
+    <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">Energy Trend (7 Days)</div><div class="chart-wrap"><canvas id="c-energy-full"></canvas></div></div>
+    <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">Energy by Zone</div><div class="chart-wrap"><canvas id="c-energy-zone"></canvas></div></div>
+  </div>
+  <div class="card mt-16">
+    <div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">ประวัติมิเตอร์</div>
+    <div class="table-wrap"><table><thead><tr><th>วันที่</th><th>Zone</th><th>kWh</th><th>Peak(kW)</th><th>Cost(฿)</th><th>Source</th></tr></thead><tbody id="energy-tbody"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ══════════ CARBON ══════════ -->
+<div id="view-carbon" class="view">
+  <div class="section-hdr"><div><div class="section-title">🌿 Carbon Footprint</div><div class="section-sub">CO₂ · Scope 1/2/3 · Net Zero 2050 Roadmap</div></div></div>
+  <div class="kpi-grid-4">
+    <div class="kpi green"><div class="kpi-label">tCO₂e YTD</div><div class="kpi-value t-green" id="c-ytd">284.6</div></div>
+    <div class="kpi blue"><div class="kpi-label">Scope 1</div><div class="kpi-value t-blue" id="c-s1">42.1</div></div>
+    <div class="kpi orange"><div class="kpi-label">Scope 2</div><div class="kpi-value t-orange" id="c-s2">198.4</div></div>
+    <div class="kpi teal"><div class="kpi-label">Scope 3</div><div class="kpi-value t-teal" id="c-s3">44.1</div></div>
+  </div>
+  <div class="grid-2">
+    <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">Net Zero Roadmap 2050</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+        <div style="text-align:center"><div class="badge bg-orange">2026</div><div style="font-size:10px;color:var(--text3);margin-top:4px">Baseline</div></div>
+        <div style="text-align:center"><div class="badge bg-yellow">2030</div><div style="font-size:10px;color:var(--text3);margin-top:4px">-30%</div></div>
+        <div style="text-align:center"><div class="badge bg-blue">2035</div><div style="font-size:10px;color:var(--text3);margin-top:4px">-55%</div></div>
+        <div style="text-align:center"><div class="badge bg-teal">2040</div><div style="font-size:10px;color:var(--text3);margin-top:4px">-80%</div></div>
+        <div style="text-align:center"><div class="badge bg-green">2050</div><div style="font-size:10px;color:var(--text3);margin-top:4px">Net Zero</div></div>
+      </div>
+      <div class="chart-wrap" style="height:160px"><canvas id="c-netzero"></canvas></div>
+    </div>
+    <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">Carbon by Scope</div><div class="chart-wrap"><canvas id="c-scope"></canvas></div></div>
+  </div>
+</div>
+
+<!-- ══════════ ESG ══════════ -->
+<div id="view-esg" class="view">
+  <div class="section-hdr"><div><div class="section-title">📊 ESG KPI Report</div><div class="section-sub">Environmental · Social · Governance</div></div><button class="btn btn-secondary btn-sm" onclick="exportESG()">📤 Export</button></div>
+  <div class="grid-3">
+    <div class="card">
+      <div class="ff-d fw-6" style="font-size:14px;color:var(--green);margin-bottom:12px">🌍 Environmental</div>
+      <div class="metric-row"><span class="t-muted">Energy Intensity</span><span class="fw-6">142 kWh/m²</span></div>
+      <div class="metric-row"><span class="t-muted">Carbon Intensity</span><span class="fw-6">0.85 kgCO₂/m²</span></div>
+      <div class="metric-row"><span class="t-muted">Water Usage</span><span class="fw-6">8,400 m³/mo</span></div>
+      <div class="metric-row"><span class="t-muted">Waste Recycled</span><span class="fw-6 t-green">68%</span></div>
+    </div>
+    <div class="card">
+      <div class="ff-d fw-6" style="font-size:14px;color:var(--blue);margin-bottom:12px">🤝 Social</div>
+      <div class="metric-row"><span class="t-muted">Training Hrs/Person</span><span class="fw-6">42h</span></div>
+      <div class="metric-row"><span class="t-muted">Safety Incidents</span><span class="fw-6 t-green">0 LTI</span></div>
+      <div class="metric-row"><span class="t-muted">Tenant Satisfaction</span><span class="fw-6">4.2/5</span></div>
+      <div class="metric-row"><span class="t-muted">Community Events</span><span class="fw-6">8/yr</span></div>
+    </div>
+    <div class="card">
+      <div class="ff-d fw-6" style="font-size:14px;color:var(--purple);margin-bottom:12px">⚖ Governance</div>
+      <div class="metric-row"><span class="t-muted">Audit Compliance</span><span class="fw-6 t-green">87%</span></div>
+      <div class="metric-row"><span class="t-muted">Policy Compliance</span><span class="fw-6 t-green">96%</span></div>
+      <div class="metric-row"><span class="t-muted">Vendor Evaluation</span><span class="fw-6">Monthly</span></div>
+      <div class="metric-row"><span class="t-muted">Risk Assessment</span><span class="fw-6">Quarterly</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ ACCESS CONTROL ══════════ -->
+<div id="view-access" class="view">
+  <div class="section-hdr">
+    <div><div class="section-title">🔒 Access Control</div><div class="section-sub">บัตรผ่าน · CCTV · บันทึกเข้า-ออก · Zone Security</div></div>
+    <div class="flex gap-8"><button class="btn btn-primary btn-sm" onclick="openModal('addAccessModal')">+ บันทึก Access</button><button class="btn btn-secondary btn-sm" onclick="exportAccess()">⬇ Export</button></div>
+  </div>
+  <div class="kpi-grid-4">
+    <div class="kpi green"><div class="kpi-label">เข้าวันนี้</div><div class="kpi-value t-green" id="acc-in">0</div></div>
+    <div class="kpi blue"><div class="kpi-label">ออกวันนี้</div><div class="kpi-value t-blue" id="acc-out">0</div></div>
+    <div class="kpi red"><div class="kpi-label">Access Denied</div><div class="kpi-value t-red" id="acc-deny">0</div></div>
+    <div class="kpi yellow"><div class="kpi-label">คนในอาคาร</div><div class="kpi-value t-yellow" id="acc-in-bldg">0</div></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>ชื่อ</th><th>Card ID</th><th>Role</th><th>Zone</th><th>วันที่</th><th>เวลา</th><th>ประตู</th><th>ทิศทาง</th><th>สถานะ</th></tr></thead>
+      <tbody id="access-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════ INCIDENT ══════════ -->
+<div id="view-incident" class="view">
+  <div class="section-hdr">
+    <div><div class="section-title">🚨 Incident Report</div><div class="section-sub">อุบัติเหตุ · Near Miss · LTI · TRIR</div></div>
+    <button class="btn btn-primary btn-sm" onclick="openModal('addIncModal')">+ รายงาน</button>
+  </div>
+  <div class="kpi-grid-4">
+    <div class="kpi green"><div class="kpi-label">Safe Days (LTI)</div><div class="kpi-value t-green" id="inc-safe">180</div></div>
+    <div class="kpi blue"><div class="kpi-label">YTD Incidents</div><div class="kpi-value t-blue" id="inc-ytd">0</div></div>
+    <div class="kpi red"><div class="kpi-label">LTI</div><div class="kpi-value t-red" id="inc-lti">0</div></div>
+    <div class="kpi yellow"><div class="kpi-label">Near Miss</div><div class="kpi-value t-yellow" id="inc-nm">0</div></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>ID</th><th>วันที่</th><th>ประเภท</th><th>สถานที่</th><th>รายละเอียด</th><th>ความรุนแรง</th><th>สถานะ</th><th>Action</th></tr></thead>
+      <tbody id="inc-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════ PTW ══════════ -->
+<div id="view-ptw" class="view">
+  <div class="section-hdr">
+    <div><div class="section-title">📝 Permit to Work (PTW)</div><div class="section-sub">Hot Work · Confined Space · Electrical · Height Work</div></div>
+    <button class="btn btn-primary btn-sm" onclick="openModal('addPTWModal')">+ ออกใบอนุญาต</button>
+  </div>
+  <div class="kpi-grid-4">
+    <div class="kpi green"><div class="kpi-label">Active</div><div class="kpi-value t-green" id="ptw-active">0</div></div>
+    <div class="kpi yellow"><div class="kpi-label">รออนุมัติ</div><div class="kpi-value t-yellow" id="ptw-pend">0</div></div>
+    <div class="kpi blue"><div class="kpi-label">ปิดวันนี้</div><div class="kpi-value t-blue" id="ptw-done">0</div></div>
+    <div class="kpi red"><div class="kpi-label">Expired</div><div class="kpi-value t-red" id="ptw-exp">0</div></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>PTW ID</th><th>ประเภท</th><th>สถานที่</th><th>ผู้ขอ</th><th>วันที่</th><th>เวลา</th><th>ผู้อนุมัติ</th><th>สถานะ</th><th>Action</th></tr></thead>
+      <tbody id="ptw-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════ PARKING ══════════ -->
+<div id="view-parking" class="view">
+  <div class="section-hdr">
+    <div><div class="section-title">🚗 Parking Management</div><div class="section-sub">ที่จอดรถ · Real-time Status · Revenue · Check-in/Out</div></div>
+    <div class="flex gap-8"><button class="btn btn-primary btn-sm" onclick="openModal('addParkModal')">+ บันทึกรถเข้า</button><button class="btn btn-secondary btn-sm" onclick="refreshParking()">↻ Refresh</button></div>
+  </div>
+  <div class="kpi-grid-4">
+    <div class="kpi green"><div class="kpi-label">ว่าง</div><div class="kpi-value t-green" id="pk-free">0</div></div>
+    <div class="kpi red"><div class="kpi-label">มีรถ</div><div class="kpi-value t-red" id="pk-used">0</div></div>
+    <div class="kpi blue"><div class="kpi-label">ทั้งหมด</div><div class="kpi-value t-blue" id="pk-total">0</div></div>
+    <div class="kpi teal"><div class="kpi-label">รายได้วันนี้</div><div class="kpi-value t-teal" style="font-size:18px" id="pk-rev">฿0</div></div>
+  </div>
+  <div class="card mb-16">
+    <div class="ff-d fw-6" style="font-size:13px;margin-bottom:12px">🗺 แผนผังที่จอดรถ B1</div>
+    <div class="park-grid" id="park-grid"></div>
+    <div class="flex gap-12 mt-8" style="font-size:10px;color:var(--text3)">
+      <span style="color:var(--green)">■ ว่าง</span><span style="color:var(--red)">■ มีรถ</span><span style="color:var(--purple)">■ VIP</span>
+    </div>
+  </div>
+  <div class="table-wrap"><table><thead><tr><th>Slot</th><th>Zone</th><th>Type</th><th>ทะเบียน</th><th>เวลาเข้า</th><th>เวลาออก</th><th>ค่าบริการ</th><th>สถานะ</th><th>Action</th></tr></thead><tbody id="park-tbody"></tbody></table></div>
+</div>
+
+<!-- ══════════ TRAINING ══════════ -->
+<div id="view-training" class="view">
+  <div class="section-hdr"><div><div class="section-title">📚 Training Calendar</div><div class="section-sub">แผนอบรม · ชั่วโมง · วิทยากร</div></div><button class="btn btn-primary btn-sm" onclick="openModal('addTrainModal')">+ หลักสูตร</button></div>
+  <div class="kpi-grid-4">
+    <div class="kpi blue"><div class="kpi-label">หลักสูตรปีนี้</div><div class="kpi-value t-blue" id="tr-total">0</div></div>
+    <div class="kpi green"><div class="kpi-label">ดำเนินการแล้ว</div><div class="kpi-value t-green" id="tr-done">0</div></div>
+    <div class="kpi orange"><div class="kpi-label">ผู้เข้าอบรมรวม</div><div class="kpi-value t-orange" id="tr-pax">0</div></div>
+    <div class="kpi teal"><div class="kpi-label">ชม.เฉลี่ย/คน</div><div class="kpi-value t-teal" id="tr-hrs">0h</div></div>
+  </div>
+  <div class="table-wrap"><table><thead><tr><th>Code</th><th>หลักสูตร</th><th>Strategy</th><th>วันที่</th><th>วิทยากร</th><th>ผู้เข้า</th><th>ชั่วโมง</th><th>สถานะ</th><th>Action</th></tr></thead><tbody id="tr-tbody"></tbody></table></div>
+</div>
+
+<!-- ══════════ COMPETENCY ══════════ -->
+<div id="view-competency" class="view">
+  <div class="section-hdr"><div><div class="section-title">🧠 Competency Matrix</div><div class="section-sub">ทักษะ · Gap Analysis · ระดับ 1-5</div></div><button class="btn btn-primary btn-sm" onclick="openModal('addCompModal')">+ พนักงาน</button></div>
+  <div class="alert-box alert-info mb-12">ระดับ: 1=Aware · 2=Basic · 3=Proficient · 4=Advanced · 5=Expert</div>
+  <div class="table-wrap"><table><thead><tr><th>พนักงาน</th><th>แผนก</th><th>Electrical</th><th>Mechanical</th><th>BAS/BMS</th><th>Safety</th><th>ESG</th><th>Facility</th><th>Avg</th><th>Action</th></tr></thead><tbody id="comp-tbody"></tbody></table></div>
+</div>
+
+<!-- ══════════ CERTIFICATION ══════════ -->
+<div id="view-cert" class="view">
+  <div class="section-hdr"><div><div class="section-title">📜 Certification Tracker</div><div class="section-sub">ใบรับรอง · License · ต่ออายุ</div></div><button class="btn btn-primary btn-sm" onclick="openModal('addCertModal')">+ ใบรับรอง</button></div>
+  <div class="kpi-grid-4">
+    <div class="kpi blue"><div class="kpi-label">ทั้งหมด</div><div class="kpi-value t-blue" id="cert-total">0</div></div>
+    <div class="kpi green"><div class="kpi-label">Valid</div><div class="kpi-value t-green" id="cert-valid">0</div></div>
+    <div class="kpi yellow"><div class="kpi-label">ใกล้หมด</div><div class="kpi-value t-yellow" id="cert-soon">0</div></div>
+    <div class="kpi red"><div class="kpi-label">หมดอายุ</div><div class="kpi-value t-red" id="cert-exp">0</div></div>
+  </div>
+  <div class="table-wrap"><table><thead><tr><th>พนักงาน</th><th>ใบรับรอง</th><th>หน่วยงาน</th><th>วันออก</th><th>หมดอายุ</th><th>สถานะ</th><th>Action</th></tr></thead><tbody id="cert-tbody"></tbody></table></div>
+</div>
+
+<!-- ══════════ TENANT ══════════ -->
+<div id="view-tenant" class="view">
+  <div class="section-hdr">
+    <div><div class="section-title">👥 Tenant Management</div><div class="section-sub">ผู้เช่า · สัญญา · ค่าเช่า · ร้องเรียน</div></div>
+    <button class="btn btn-primary btn-sm" onclick="openModal('addTenantModal')">+ เพิ่มผู้เช่า</button>
+  </div>
+  <div class="kpi-grid-4">
+    <div class="kpi orange"><div class="kpi-label">Total Tenants</div><div class="kpi-value t-orange" id="ten-total">0</div></div>
+    <div class="kpi green"><div class="kpi-label">Active Lease</div><div class="kpi-value t-green" id="ten-active">0</div></div>
+    <div class="kpi teal"><div class="kpi-label">Monthly Revenue</div><div class="kpi-value t-teal" style="font-size:18px" id="ten-rev">฿0</div></div>
+    <div class="kpi blue"><div class="kpi-label">Occupied Area (m²)</div><div class="kpi-value t-blue" id="ten-area">0</div></div>
+  </div>
+  <div id="tenant-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:4px"></div>
+</div>
+
+<!-- ══════════ RETAIL SPACE ══════════ -->
+<div id="view-retail" class="view">
+  <div class="section-hdr"><div><div class="section-title">🏬 Retail Space</div><div class="section-sub">พื้นที่ให้เช่า · Occupancy · Zone Map</div></div><button class="btn btn-primary btn-sm" onclick="openModal('addRetailModal')">+ เพิ่มพื้นที่</button></div>
+  <div class="kpi-grid-4">
+    <div class="kpi blue"><div class="kpi-label">Total Units</div><div class="kpi-value t-blue" id="ret-total">0</div></div>
+    <div class="kpi green"><div class="kpi-label">Occupied</div><div class="kpi-value t-green" id="ret-occ">0</div></div>
+    <div class="kpi yellow"><div class="kpi-label">Available</div><div class="kpi-value t-yellow" id="ret-avail">0</div></div>
+    <div class="kpi orange"><div class="kpi-label">Occupancy Rate</div><div class="kpi-value t-orange" id="ret-rate">0%</div></div>
+  </div>
+  <div class="table-wrap"><table><thead><tr><th>Unit ID</th><th>ชื่อ/ร้าน</th><th>Zone</th><th>ชั้น</th><th>พื้นที่(m²)</th><th>ผู้เช่า</th><th>ค่าเช่า/เดือน</th><th>สัญญาถึง</th><th>สถานะ</th><th>Action</th></tr></thead><tbody id="retail-tbody"></tbody></table></div>
+</div>
+
+<!-- ══════════ EVENT HALL ══════════ -->
+<div id="view-event" class="view">
+  <div class="section-hdr"><div><div class="section-title">🎪 Event Hall Management</div><div class="section-sub">จอง Event · ตรวจสอบห้อง · รายได้</div></div><button class="btn btn-primary btn-sm" onclick="openModal('addEventModal')">+ จอง Event</button></div>
+  <div class="kpi-grid-4">
+    <div class="kpi blue"><div class="kpi-label">Events เดือนนี้</div><div class="kpi-value t-blue" id="ev-total">0</div></div>
+    <div class="kpi green"><div class="kpi-label">Confirmed</div><div class="kpi-value t-green" id="ev-conf">0</div></div>
+    <div class="kpi yellow"><div class="kpi-label">รออนุมัติ</div><div class="kpi-value t-yellow" id="ev-pend">0</div></div>
+    <div class="kpi teal"><div class="kpi-label">รายได้(฿)</div><div class="kpi-value t-teal" style="font-size:18px" id="ev-rev">฿0</div></div>
+  </div>
+  <div class="table-wrap"><table><thead><tr><th>Event ID</th><th>ชื่อ Event</th><th>Hall</th><th>วันที่</th><th>เวลา</th><th>ผู้จอง</th><th>จำนวนคน</th><th>ค่าบริการ</th><th>สถานะ</th><th>Action</th></tr></thead><tbody id="event-tbody"></tbody></table></div>
+</div>
+
+<!-- ══════════ AI ══════════ -->
+<div id="view-ai" class="view">
+  <div class="section-hdr"><div><div class="section-title">🤖 AI Analytics</div><div class="section-sub">Claude API · วิเคราะห์ข้อมูล 4-Strategy · eNGINNo Intelligence</div></div></div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="ff-d fw-6" style="font-size:14px;margin-bottom:14px">🤖 Claude AI — Commercial Intelligence</div>
+      <div id="ai-chat" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px;min-height:200px;max-height:300px;overflow-y:auto;font-size:12px;color:var(--text2);margin-bottom:12px">
+        <div style="color:var(--orange);font-weight:600">eNGINNo AI พร้อมใช้งาน...</div>
+        <div class="t-muted mt-8">ใส่ Anthropic API Key ใน Configuration เพื่อเปิดใช้งาน AI วิเคราะห์ข้อมูลอาคาร</div>
+      </div>
+      <div class="flex gap-8">
+        <input class="form-control" id="ai-input" placeholder="ถาม AI เกี่ยวกับข้อมูลอาคาร..." onkeydown="if(event.key==='Enter')sendAI()">
+        <button class="btn btn-primary btn-sm" onclick="sendAI()">ส่ง</button>
+      </div>
+      <div class="flex gap-8 mt-8 flex-wrap">
+        <button class="btn btn-secondary btn-sm" onclick="askAI('วิเคราะห์ Asset Risk')">🔧 Asset Risk</button>
+        <button class="btn btn-secondary btn-sm" onclick="askAI('สรุป WR และ MTTR')">📊 WR Summary</button>
+        <button class="btn btn-secondary btn-sm" onclick="askAI('ประเมิน ESG')">🌱 ESG</button>
+        <button class="btn btn-secondary btn-sm" onclick="askAI('วิเคราะห์การใช้พลังงาน')">⚡ Energy</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ff-d fw-6" style="font-size:14px;margin-bottom:14px">⚙ AI Configuration</div>
+      <div class="form-group"><label class="form-label">Anthropic API Key</label><input class="form-control" id="ai-key-cm" type="password" placeholder="sk-ant-..."></div>
+      <button class="btn btn-primary btn-sm" onclick="saveAIKey()">💾 Save Key</button>
+      <div class="t-muted mt-8" style="font-size:11px">Key เก็บใน localStorage · claude-sonnet-4-6</div>
+      <hr style="border-color:var(--border);margin:14px 0">
+      <div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">Data Context</div>
+      <div class="metric-row"><span class="t-muted">Assets</span><span id="ai-ctx-assets">0</span></div>
+      <div class="metric-row"><span class="t-muted">WR</span><span id="ai-ctx-wr">0</span></div>
+      <div class="metric-row"><span class="t-muted">PPM Plans</span><span id="ai-ctx-ppm">0</span></div>
+      <div class="metric-row"><span class="t-muted">Energy Records</span><span id="ai-ctx-energy">0</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ REPORTS ══════════ -->
+<div id="view-report" class="view">
+  <div class="section-hdr"><div><div class="section-title">📈 Reports & Analytics</div><div class="section-sub">Export รายงาน · สรุปภาพรวม</div></div><button class="btn btn-primary btn-sm" onclick="generateReport()">📄 Generate Report</button></div>
+  <div class="grid-3">
+    <div class="card" style="cursor:pointer;text-align:center;padding:24px" onclick="exportAssets()"><div style="font-size:32px;margin-bottom:8px">⚙</div><div class="ff-d fw-6">Asset Register</div><div class="t-muted" style="font-size:11px">Export Excel</div></div>
+    <div class="card" style="cursor:pointer;text-align:center;padding:24px" onclick="exportWR()"><div style="font-size:32px;margin-bottom:8px">🔧</div><div class="ff-d fw-6">Work Request</div><div class="t-muted" style="font-size:11px">Export Excel</div></div>
+    <div class="card" style="cursor:pointer;text-align:center;padding:24px" onclick="exportEnergy()"><div style="font-size:32px;margin-bottom:8px">⚡</div><div class="ff-d fw-6">Energy Report</div><div class="t-muted" style="font-size:11px">Export Excel</div></div>
+    <div class="card" style="cursor:pointer;text-align:center;padding:24px" onclick="exportInv()"><div style="font-size:32px;margin-bottom:8px">📦</div><div class="ff-d fw-6">Inventory</div><div class="t-muted" style="font-size:11px">Export Excel</div></div>
+    <div class="card" style="cursor:pointer;text-align:center;padding:24px" onclick="exportESG()"><div style="font-size:32px;margin-bottom:8px">🌱</div><div class="ff-d fw-6">ESG KPI</div><div class="t-muted" style="font-size:11px">Export PDF</div></div>
+    <div class="card" style="cursor:pointer;text-align:center;padding:24px" onclick="exportAccess()"><div style="font-size:32px;margin-bottom:8px">🔒</div><div class="ff-d fw-6">Security Log</div><div class="t-muted" style="font-size:11px">Export Excel</div></div>
+  </div>
+</div>
+
+  </div><!-- end #content -->
+</main>
+
+<!-- ════════════ MODALS ════════════ -->
+<!-- ADD ASSET -->
+<div class="modal-overlay" id="addAssetModal">
+  <div class="modal modal-lg">
+    <div class="modal-hdr"><div class="modal-title">⚙ เพิ่ม Asset</div><button class="btn btn-secondary btn-sm" onclick="closeModal('addAssetModal')">✕</button></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">ชื่อ Asset *</label><input class="form-control" id="a-name" placeholder="ชื่ออุปกรณ์"></div><div class="form-group"><label class="form-label">ระบบ *</label><select class="form-control" id="a-sys"><option>AC</option><option>EE</option><option>EL</option><option>FA</option><option>FP</option><option>BAS</option><option>SN</option><option>TR</option><option>PL</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Location</label><input class="form-control" id="a-loc" placeholder="ชั้น / Zone"></div><div class="form-group"><label class="form-label">สถานะ</label><select class="form-control" id="a-status"><option value="active">🟢 Active</option><option value="warning">🟡 Warning</option><option value="critical">🔴 Critical</option><option value="inactive">⚫ Inactive</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Brand/Model</label><input class="form-control" id="a-brand" placeholder="Brand Model"></div><div class="form-group"><label class="form-label">Serial No.</label><input class="form-control" id="a-serial" placeholder="SN-XXXXX"></div></div>
+    <div class="form-row-3"><div class="form-group"><label class="form-label">ราคาซื้อ (฿)</label><input class="form-control" id="a-cost" type="number" value="0"></div><div class="form-group"><label class="form-label">วันติดตั้ง</label><input class="form-control" id="a-install" type="date"></div><div class="form-group"><label class="form-label">อายุ (ปี)</label><input class="form-control" id="a-life" type="number" value="10"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Lifecycle Stage</label><select class="form-control" id="a-lc"><option value="new">🆕 New</option><option value="operating">✅ Operating</option><option value="aging">⚠ Aging</option><option value="critical">🔴 Critical</option><option value="eol">🔚 EOL</option></select></div><div class="form-group"><label class="form-label">Business Module</label><select class="form-control" id="a-module"><option>BHIRAJBURI</option><option>TOWNSHIP</option><option>BITEC</option></select></div></div>
+    <div class="flex gap-8 mt-16" style="justify-content:flex-end"><button class="btn btn-secondary" onclick="closeModal('addAssetModal')">ยกเลิก</button><button class="btn btn-primary" onclick="saveAsset()">💾 บันทึก</button></div>
+  </div>
+</div>
+
+<!-- ADD WR -->
+<div class="modal-overlay" id="addWRModal">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">🔧 แจ้ง Work Request</div><button class="btn btn-secondary btn-sm" onclick="closeModal('addWRModal')">✕</button></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Asset *</label><select class="form-control" id="wr-asset"><option value="">-- เลือก Asset --</option></select></div><div class="form-group"><label class="form-label">ประเภท</label><select class="form-control" id="wr-type"><option value="ER">🚨 ER — Emergency</option><option value="CM">🔧 CM — Corrective</option><option value="PJ">🏗 PJ — Project</option></select></div></div>
+    <div class="form-group"><label class="form-label">รายละเอียดปัญหา *</label><textarea class="form-control" id="wr-desc" rows="3" placeholder="อธิบายปัญหา..."></textarea></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Priority</label><div class="flex gap-8 mt-4"><label style="cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px"><input type="radio" name="wr-pri" value="critical"> 🔴 Critical</label><label style="cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px"><input type="radio" name="wr-pri" value="high"> 🟡 High</label><label style="cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px"><input type="radio" name="wr-pri" value="normal" checked> 🟢 Normal</label></div></div><div class="form-group"><label class="form-label">ผู้แจ้ง</label><input class="form-control" id="wr-by" placeholder="ชื่อผู้แจ้ง"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">ช่าง/ทีม</label><input class="form-control" id="wr-tech" placeholder="ช่างผู้รับผิดชอบ"></div><div class="form-group"><label class="form-label">เบอร์โทร</label><input class="form-control" id="wr-phone" placeholder="0xx-xxx-xxxx"></div></div>
+    <div class="flex gap-8 mt-16" style="justify-content:flex-end"><button class="btn btn-secondary" onclick="closeModal('addWRModal')">ยกเลิก</button><button class="btn btn-primary" onclick="saveWR()">🔧 แจ้งซ่อม</button></div>
+  </div>
+</div>
+
+<!-- ADD PPM -->
+<div class="modal-overlay" id="addPPMModal">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">📅 เพิ่มแผน PM</div><button class="btn btn-secondary btn-sm" onclick="closeModal('addPPMModal')">✕</button></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Asset *</label><select class="form-control" id="pm-asset"><option value="">-- เลือก Asset --</option></select></div><div class="form-group"><label class="form-label">ระบบ</label><select class="form-control" id="pm-sys"><option>AC</option><option>EE</option><option>EL</option><option>FA</option><option>FP</option><option>BAS</option></select></div></div>
+    <div class="form-group"><label class="form-label">ชื่องาน PM *</label><input class="form-control" id="pm-title" placeholder="ชื่อแผน PM"></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">ความถี่</label><select class="form-control" id="pm-freq"><option>รายสัปดาห์</option><option>รายเดือน</option><option>รายไตรมาส</option><option>รายครึ่งปี</option><option>รายปี</option></select></div><div class="form-group"><label class="form-label">วันแผน</label><input class="form-control" id="pm-date" type="date"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">ผู้รับผิดชอบ</label><input class="form-control" id="pm-tech" placeholder="ช่าง/ทีม"></div><div class="form-group"><label class="form-label">ค่าใช้จ่าย (฿)</label><input class="form-control" id="pm-cost" type="number" value="0"></div></div>
+    <div class="flex gap-8 mt-16" style="justify-content:flex-end"><button class="btn btn-secondary" onclick="closeModal('addPPMModal')">ยกเลิก</button><button class="btn btn-primary" onclick="savePPM()">📅 บันทึก</button></div>
+  </div>
+</div>
+
+<!-- ADD TENANT -->
+<div class="modal-overlay" id="addTenantModal">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">👥 เพิ่มผู้เช่า</div><button class="btn btn-secondary btn-sm" onclick="closeModal('addTenantModal')">✕</button></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">ชื่อบริษัท/ร้าน *</label><input class="form-control" id="ten-name" placeholder="ชื่อผู้เช่า"></div><div class="form-group"><label class="form-label">ประเภท</label><select class="form-control" id="ten-type"><option>Retail</option><option>Office</option><option>F&B</option><option>Service</option><option>Entertainment</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">พื้นที่ (m²)</label><input class="form-control" id="ten-area" type="number" placeholder="0"></div><div class="form-group"><label class="form-label">ค่าเช่า/เดือน (฿)</label><input class="form-control" id="ten-rent" type="number" placeholder="0"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">วันเริ่มสัญญา</label><input class="form-control" id="ten-start" type="date"></div><div class="form-group"><label class="form-label">วันสิ้นสุดสัญญา</label><input class="form-control" id="ten-end" type="date"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">ผู้ติดต่อ</label><input class="form-control" id="ten-contact" placeholder="ชื่อผู้ติดต่อ"></div><div class="form-group"><label class="form-label">เบอร์โทร</label><input class="form-control" id="ten-phone" placeholder="0xx-xxx-xxxx"></div></div>
+    <div class="form-group"><label class="form-label">Zone/ชั้น</label><input class="form-control" id="ten-zone" placeholder="Zone A / ชั้น G"></div>
+    <div class="flex gap-8 mt-16" style="justify-content:flex-end"><button class="btn btn-secondary" onclick="closeModal('addTenantModal')">ยกเลิก</button><button class="btn btn-primary" onclick="saveTenant()">💾 บันทึก</button></div>
+  </div>
+</div>
+
+<!-- ADD ENERGY -->
+<div class="modal-overlay" id="addEnergyModal">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">⚡ บันทึกมิเตอร์</div><button class="btn btn-secondary btn-sm" onclick="closeModal('addEnergyModal')">✕</button></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">วันที่ *</label><input class="form-control" id="en-date" type="date"></div><div class="form-group"><label class="form-label">Zone *</label><select class="form-control" id="en-zone"><option>Zone A</option><option>Zone B</option><option>Chiller Plant</option><option>Common Area</option><option>Solar Rooftop</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">kWh *</label><input class="form-control" id="en-kwh" type="number" step="0.1" placeholder="0.0"></div><div class="form-group"><label class="form-label">Peak kW</label><input class="form-control" id="en-peak" type="number" step="0.1" placeholder="0.0"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">ค่าไฟ (฿)</label><input class="form-control" id="en-cost" type="number" placeholder="0"></div><div class="form-group"><label class="form-label">แหล่งพลังงาน</label><select class="form-control" id="en-src"><option>Grid</option><option>Solar</option><option>Generator</option></select></div></div>
+    <div class="flex gap-8 mt-16" style="justify-content:flex-end"><button class="btn btn-secondary" onclick="closeModal('addEnergyModal')">ยกเลิก</button><button class="btn btn-primary" onclick="saveEnergy()">💾 บันทึก</button></div>
+  </div>
+</div>
+
+<!-- ADD PTW -->
+<div class="modal-overlay" id="addPTWModal">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">📝 ออกใบอนุญาต PTW</div><button class="btn btn-secondary btn-sm" onclick="closeModal('addPTWModal')">✕</button></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">ประเภทงาน *</label><select class="form-control" id="ptw-type"><option>🔥 Hot Work</option><option>📦 Confined Space</option><option>⚡ Electrical</option><option>🧗 Working at Height</option><option>☢ Chemical</option></select></div><div class="form-group"><label class="form-label">สถานที่ *</label><input class="form-control" id="ptw-loc" placeholder="สถานที่ทำงาน"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">ผู้ขอ</label><input class="form-control" id="ptw-by" placeholder="ชื่อผู้ขอ"></div><div class="form-group"><label class="form-label">วันที่ทำงาน</label><input class="form-control" id="ptw-date" type="date"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">เวลาเริ่ม</label><input class="form-control" id="ptw-start" type="time" value="08:00"></div><div class="form-group"><label class="form-label">เวลาสิ้นสุด</label><input class="form-control" id="ptw-end" type="time" value="17:00"></div></div>
+    <div class="form-group"><label class="form-label">รายละเอียดงาน</label><textarea class="form-control" id="ptw-desc" rows="2" placeholder="อธิบายงานที่จะทำ..."></textarea></div>
+    <div class="flex gap-8 mt-16" style="justify-content:flex-end"><button class="btn btn-secondary" onclick="closeModal('addPTWModal')">ยกเลิก</button><button class="btn btn-primary" onclick="savePTW()">📝 ออกใบอนุญาต</button></div>
+  </div>
+</div>
+
+<!-- ADD INCIDENT -->
+<div class="modal-overlay" id="addIncModal">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">🚨 รายงาน Incident</div><button class="btn btn-secondary btn-sm" onclick="closeModal('addIncModal')">✕</button></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">ประเภท *</label><select class="form-control" id="inc-type"><option>Near Miss</option><option>First Aid</option><option>Medical Treatment</option><option>Lost Time Injury</option><option>Property Damage</option></select></div><div class="form-group"><label class="form-label">ความรุนแรง</label><select class="form-control" id="inc-sev"><option>Low</option><option>Minor</option><option>Moderate</option><option>Major</option><option>Critical</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">วันเวลา</label><input class="form-control" id="inc-date" type="datetime-local"></div><div class="form-group"><label class="form-label">สถานที่ *</label><input class="form-control" id="inc-loc" placeholder="สถานที่เกิดเหตุ"></div></div>
+    <div class="form-group"><label class="form-label">รายละเอียด *</label><textarea class="form-control" id="inc-desc" rows="3" placeholder="อธิบายเหตุการณ์..."></textarea></div>
+    <div class="flex gap-8 mt-16" style="justify-content:flex-end"><button class="btn btn-secondary" onclick="closeModal('addIncModal')">ยกเลิก</button><button class="btn btn-danger" onclick="saveIncident()">🚨 บันทึก</button></div>
+  </div>
+</div>
+
+<!-- ADD TRAINING -->
+<div class="modal-overlay" id="addTrainModal">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">📚 เพิ่มหลักสูตรอบรม</div><button class="btn btn-secondary btn-sm" onclick="closeModal('addTrainModal')">✕</button></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">หลักสูตร *</label><input class="form-control" id="tr-name" placeholder="ชื่อหลักสูตร"></div><div class="form-group"><label class="form-label">Strategy</label><select class="form-control" id="tr-str"><option>Facility</option><option>Energy</option><option>Security</option><option>Academy</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">วันที่</label><input class="form-control" id="tr-date" type="date"></div><div class="form-group"><label class="form-label">วิทยากร</label><input class="form-control" id="tr-inst" placeholder="ชื่อวิทยากร"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">จำนวนผู้เข้า</label><input class="form-control" id="tr-pax" type="number" value="0"></div><div class="form-group"><label class="form-label">ชั่วโมง</label><input class="form-control" id="tr-hrs" type="number" value="0"></div></div>
+    <div class="flex gap-8 mt-16" style="justify-content:flex-end"><button class="btn btn-secondary" onclick="closeModal('addTrainModal')">ยกเลิก</button><button class="btn btn-primary" onclick="saveTraining()">💾 บันทึก</button></div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════
+//  eNGINNo SBS — Commercial Module
+//  v1.0 · 2026 · PSD Engineering Dept.
+// ════════════════════════════════════════════════════
+const K = 'cm_';
+const DB = {
+  get:(k,d)=>{ try{return JSON.parse(localStorage.getItem(K+k))??d;}catch{return d;} },
+  set:(k,v)=>localStorage.setItem(K+k,JSON.stringify(v)),
+};
+const GASURL = ()=>localStorage.getItem('sbs_gas_url')||'';
+let charts={};
+let currentBuilding='BHIRAJBURI';
+
+// ── CLOCK ──
+setInterval(()=>{const el=document.getElementById('clock');if(!el)return;const n=new Date();el.textContent=n.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+n.toLocaleTimeString('th-TH');},1000);
+
+// ── HELPERS ──
+function fmtDate(d){if(!d)return '—';try{return new Date(d).toLocaleDateString('th-TH');}catch{return d;}}
+function fmtCurr(n){return '฿'+Math.round(n||0).toLocaleString('th-TH');}
+function genId(p){return p+'-'+new Date().getFullYear()+'-'+String(Date.now()).slice(-5);}
+function openModal(id){document.getElementById(id)?.classList.add('open');populateAssetSelects();}
+function closeModal(id){document.getElementById(id)?.classList.remove('open');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));});
+function exportXLS(data,name){if(!data.length){alert('ไม่มีข้อมูล');return;}const ws=XLSX.utils.json_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,name);XLSX.writeFile(wb,`SBS_CM_${name}_${new Date().toISOString().split('T')[0]}.xlsx`);}
+function goBack(){window.close();if(!window.closed){window.location.href='eNGINNo_SBS_Main.html';}}
+function changeBuilding(v){currentBuilding=v;document.getElementById('tb-bread').textContent='eNGINNo SBS › Commercial › '+v;refreshDash();}
+
+// ── NAVIGATION ──
+const TITLES={
+  dashboard:'Dashboard',bcs:'Building Critical Status',assets:'Asset Register (ALC)',
+  wr:'Work Request (WR)',ppm:'Preventive Maint. (PPM)',opm:'Operation (OPT/OEE)',
+  ma:'MA Contract',inv:'Inventory',energy:'Energy Monitor',carbon:'Carbon Footprint',
+  esg:'ESG KPI Report',access:'Access Control',incident:'Incident Report',
+  ptw:'Permit to Work',parking:'Parking Management',training:'Training Calendar',
+  competency:'Competency Matrix',cert:'Certification Tracker',
+  tenant:'Tenant Management',retail:'Retail Space',event:'Event Hall',
+  ai:'AI Analytics',report:'Reports'
+};
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>{if(n.getAttribute('onclick')?.includes("'"+name+"'"))n.classList.add('active');});
+  document.getElementById('tb-title').innerHTML=`<span style="color:var(--orange)">🏢 Commercial</span> — ${TITLES[name]||name}`;
+  const renders={
+    dashboard:refreshDash,bcs:renderBCS,assets:renderAssets,wr:renderWR,
+    ppm:renderPPM,opm:renderOPM,ma:renderMA,inv:renderInv,
+    energy:renderEnergy,carbon:renderCarbon,esg:()=>{},
+    access:renderAccess,incident:renderIncident,ptw:renderPTW,parking:renderParking,
+    training:renderTraining,competency:renderCompetency,cert:renderCert,
+    tenant:renderTenant,retail:renderRetail,event:renderEvent,
+    ai:renderAI,report:()=>{}
+  };
+  if(renders[name]) renders[name]();
+}
+
+// ── SEED DATA ──
+function seedData(){
+  if(DB.get('seeded',false)) return;
+  // Assets
+  DB.set('assets',[
+    {id:'CM-AST-00001',name:'Chiller Unit 1',sys:'AC',loc:'B2 Plant Room',status:'active',brand:'Trane RTAC-200',serial:'TR2024-001',cost:4200000,install:'2024-01-20',life:20,lc:'operating',module:'BHIRAJBURI'},
+    {id:'CM-AST-00002',name:'AHU-G01 โลบบี้',sys:'AC',loc:'G/F Lobby',status:'active',brand:'Carrier AHU-30',serial:'CA2024-001',cost:850000,install:'2024-02-01',life:15,lc:'operating',module:'BHIRAJBURI'},
+    {id:'CM-AST-00003',name:'ลิฟต์ A1',sys:'TR',loc:'Core A All Floor',status:'active',brand:'OTIS Gen2',serial:'OT2024-001',cost:2500000,install:'2024-01-15',life:25,lc:'operating',module:'BHIRAJBURI'},
+    {id:'CM-AST-00004',name:'ลิฟต์ A2',sys:'TR',loc:'Core A All Floor',status:'active',brand:'OTIS Gen2',serial:'OT2024-002',cost:2500000,install:'2024-01-15',life:25,lc:'operating',module:'BHIRAJBURI'},
+    {id:'CM-AST-00005',name:'Generator 1000kVA',sys:'EE',loc:'B2 Generator Room',status:'active',brand:'Cummins C1000',serial:'CU2024-001',cost:5500000,install:'2024-01-10',life:20,lc:'operating',module:'BHIRAJBURI'},
+    {id:'CM-AST-00006',name:'Solar Rooftop 200kW',sys:'EE',loc:'Roof Level',status:'active',brand:'Canadian Solar',serial:'CS2024-001',cost:2800000,install:'2024-03-01',life:25,lc:'new',module:'BHIRAJBURI'},
+    {id:'CM-AST-00007',name:'Fire Suppression System',sys:'FP',loc:'All Floors',status:'active',brand:'Hochiki FP-3000',serial:'HO2024-001',cost:1800000,install:'2024-01-05',life:15,lc:'operating',module:'BHIRAJBURI'},
+    {id:'CM-AST-00008',name:'CCTV 128 ตัว',sys:'SN',loc:'All Floors',status:'warning',brand:'Hikvision DS-9664',serial:'HV2024-001',cost:980000,install:'2024-01-08',life:10,lc:'operating',module:'BHIRAJBURI'},
+    {id:'CM-AST-00009',name:'BAS/BMS System',sys:'BAS',loc:'Control Room B1',status:'active',brand:'Siemens Desigo',serial:'SI2024-001',cost:3200000,install:'2024-02-15',life:15,lc:'operating',module:'BHIRAJBURI'},
+    {id:'CM-AST-00010',name:'AHU ชั้น 2 — Retail',sys:'AC',loc:'2F Retail Zone',status:'warning',brand:'Carrier AHU-20',serial:'CA2024-002',cost:680000,install:'2024-02-01',life:15,lc:'aging',module:'BHIRAJBURI'},
+  ]);
+  // WR
+  DB.set('wr',[
+    {id:'CM-WR-00001',asset:'CM-AST-00002',assetName:'AHU-G01 โลบบี้',type:'CM',desc:'AHU ส่งเสียงดังผิดปกติ',priority:'high',by:'นายสมชาย',tech:'ทีม HVAC',status:'open',date:new Date().toISOString(),mttr:null,cost:0},
+    {id:'CM-WR-00002',asset:'CM-AST-00008',assetName:'CCTV 128 ตัว',type:'ER',desc:'กล้อง Zone B1 ภาพไม่ชัด 8 ตัว',priority:'critical',by:'Security Team',tech:'ทีม IT',status:'inprog',date:new Date(Date.now()-7200000).toISOString(),mttr:null,cost:0},
+    {id:'CM-WR-00003',asset:'CM-AST-00003',assetName:'ลิฟต์ A1',type:'CM',desc:'ประตูลิฟต์ปิดไม่สนิท',priority:'high',by:'นายA',tech:'OTIS Service',status:'closed',date:new Date(Date.now()-172800000).toISOString(),closeDate:new Date(Date.now()-86400000).toISOString(),mttr:4.5,cost:15000},
+    {id:'CM-WR-00004',asset:'CM-AST-00010',assetName:'AHU ชั้น 2',type:'CM',desc:'อุณหภูมิสูงกว่า Setpoint 3°C',priority:'high',by:'System Alert',tech:'ทีม HVAC',status:'open',date:new Date(Date.now()-3600000).toISOString(),mttr:null,cost:0},
+  ]);
+  // PPM
+  DB.set('ppm',[
+    {id:'CM-PPM-00001',asset:'CM-AST-00001',assetName:'Chiller Unit 1',title:'ตรวจสอบ Chiller ประจำเดือน',sys:'AC',freq:'รายเดือน',planDate:'2026-07-10',tech:'Trane Service',cost:8000,status:'planned',mtbf:2160},
+    {id:'CM-PPM-00002',asset:'CM-AST-00002',assetName:'AHU-G01',title:'เปลี่ยนไส้กรอง AHU G01',sys:'AC',freq:'รายไตรมาส',planDate:'2026-07-05',tech:'ทีม HVAC',cost:3500,status:'planned',mtbf:2160},
+    {id:'CM-PPM-00003',asset:'CM-AST-00003',assetName:'ลิฟต์ A1',title:'PM ลิฟต์ A1 รายเดือน',sys:'TR',freq:'รายเดือน',planDate:'2026-07-08',tech:'OTIS',cost:8000,status:'planned',mtbf:4320},
+    {id:'CM-PPM-00004',asset:'CM-AST-00005',assetName:'Generator',title:'ทดสอบ Generator Monthly',sys:'EE',freq:'รายเดือน',planDate:'2026-06-20',actualDate:'2026-06-21',tech:'ทีมไฟฟ้า',cost:2000,status:'done',mtbf:8760,result:'ผ่าน'},
+  ]);
+  // MA
+  DB.set('ma',[
+    {id:'CM-MA-00001',asset:'CM-AST-00001,CM-AST-00010',vendor:'Trane Service Thailand',type:'Full Service',start:'2024-01-20',end:'2027-01-20',value:360000,sla:4,contact:'02-123-4567',status:'active'},
+    {id:'CM-MA-00002',asset:'CM-AST-00003,CM-AST-00004',vendor:'OTIS Thailand',type:'Full Maintenance',start:'2024-01-15',end:'2027-01-15',value:480000,sla:2,contact:'02-234-5678',status:'active'},
+    {id:'CM-MA-00003',asset:'CM-AST-00009',vendor:'Siemens Thailand',type:'Preventive',start:'2024-02-15',end:'2026-08-15',value:240000,sla:8,contact:'02-345-6789',status:'active'},
+  ]);
+  // Inventory
+  DB.set('inv',[
+    {id:'CM-INV-00001',code:'AC-001',name:'ไส้กรอง AHU G01',type:'อะไหล่',unit:'ชิ้น',qty:5,min:3,max:10,price:1200,supplier:'Carrier'},
+    {id:'CM-INV-00002',code:'EL-001',name:'หลอดไฟ LED 18W',type:'วัสดุ',unit:'หลอด',qty:120,min:50,max:200,price:180,supplier:'Philips'},
+    {id:'CM-INV-00003',code:'AC-002',name:'สายพานพัดลม AHU',type:'อะไหล่',unit:'เส้น',qty:2,min:4,max:8,price:3500,supplier:'Gates'},
+    {id:'CM-INV-00004',code:'FP-001',name:'หัวฉีด Sprinkler',type:'อะไหล่',unit:'ตัว',qty:20,min:10,max:40,price:850,supplier:'Hochiki'},
+    {id:'CM-INV-00005',code:'GN-001',name:'น้ำมัน Diesel 200L',type:'วัสดุ',unit:'ถัง',qty:8,min:5,max:15,price:7200,supplier:'PTT'},
+  ]);
+  // Energy
+  const energyData=[];
+  for(let i=6;i>=0;i--){const d=new Date(Date.now()-86400000*i).toISOString().split('T')[0];['Zone A','Zone B','Chiller','Common','Solar'].forEach(z=>{energyData.push({id:'EN-'+Date.now()+Math.random(),date:d,zone:z,kwh:(Math.random()*500+200).toFixed(1),peak:(Math.random()*80+40).toFixed(1),cost:(Math.random()*2500+1000).toFixed(0),src:z==='Solar'?'Solar':'Grid'});});}
+  DB.set('energy',energyData);
+  // Access
+  DB.set('access',[
+    {id:'ACC-001',name:'นายสมชาย ใจดี',card:'CARD-0001',role:'staff',zone:'Main Lobby',date:new Date().toISOString().split('T')[0],time:'08:12',door:'Main Entrance',dir:'IN',status:'granted'},
+    {id:'ACC-002',name:'นางสาวรัตนา',card:'CARD-0002',role:'tenant',zone:'Zone B',date:new Date().toISOString().split('T')[0],time:'08:25',door:'Zone B Gate',dir:'IN',status:'granted'},
+    {id:'ACC-003',name:'Unknown Visitor',card:'CARD-9999',role:'visitor',zone:'B1 Server',date:new Date().toISOString().split('T')[0],time:'22:15',door:'B1 Server Room',dir:'IN',status:'denied'},
+  ]);
+  // Parking
+  const parkData=[];
+  for(let i=1;i<=30;i++){const occ=Math.random()>0.45;parkData.push({id:'PK-'+String(i).padStart(3,'0'),slot:'B1-'+String(i).padStart(2,'0'),zone:'B1',type:i<=5?'VIP':i<=10?'Reserved':'Standard',status:occ?'used':'free',plate:occ?'กข '+Math.floor(Math.random()*9000+1000):'',entry:occ?'08:30':'',fee:0});}
+  DB.set('parking',parkData);
+  // PTW
+  DB.set('ptw',[
+    {id:'CM-PTW-00001',type:'🔥 Hot Work',loc:'B2 Cooling Tower',by:'ช่าง ก',date:'2026-06-29',start:'08:00',end:'17:00',desc:'Welding งาน Cooling Tower',status:'active',approvedBy:'Mr.Admin'},
+    {id:'CM-PTW-00002',type:'📦 Confined Space',loc:'Underground Tank R1',by:'ช่าง ข',date:'2026-06-29',start:'09:00',end:'12:00',desc:'ทำความสะอาด Tank',status:'pending',approvedBy:'รออนุมัติ'},
+  ]);
+  // Incidents
+  DB.set('incidents',[]);
+  // Tenants
+  DB.set('tenants',[
+    {id:'TEN-001',name:'Starbucks Thailand',type:'F&B',area:180,rent:180000,start:'2024-01-01',end:'2026-12-31',contact:'นายกาแฟ',phone:'02-111-1111',zone:'G/F Zone A',status:'active'},
+    {id:'TEN-002',name:'Central Department Store',type:'Retail',area:8500,rent:1250000,start:'2024-01-01',end:'2026-12-31',contact:'นางสาวห้าง',phone:'02-222-2222',zone:'1F-3F',status:'active'},
+    {id:'TEN-003',name:'SCB Bank',type:'Service',area:320,rent:280000,start:'2024-03-01',end:'2027-02-28',contact:'นายธนาคาร',phone:'02-333-3333',zone:'G/F Zone B',status:'active'},
+    {id:'TEN-004',name:'Fitness First',type:'Entertainment',area:1200,rent:480000,start:'2024-02-01',end:'2027-01-31',contact:'นายฟิตเนส',phone:'02-444-4444',zone:'4F',status:'active'},
+  ]);
+  // Retail Spaces
+  DB.set('retail',[
+    {id:'RT-001',name:'Unit G-01',zone:'G/F',floor:'G',area:180,tenant:'TEN-001',rent:180000,leaseEnd:'2026-12-31',status:'occupied'},
+    {id:'RT-002',name:'Unit G-02',zone:'G/F',floor:'G',area:240,tenant:'',rent:0,leaseEnd:'',status:'available'},
+    {id:'RT-003',name:'Unit 1F-A',zone:'1F',floor:'1',area:8500,tenant:'TEN-002',rent:1250000,leaseEnd:'2026-12-31',status:'occupied'},
+    {id:'RT-004',name:'Unit B-01 Bank',zone:'G/F',floor:'G',area:320,tenant:'TEN-003',rent:280000,leaseEnd:'2027-02-28',status:'occupied'},
+  ]);
+  // Events
+  DB.set('events',[
+    {id:'EV-001',name:'BHIRAJBURI Food Festival',hall:'Hall A',date:'2026-07-05',timeS:'09:00',timeE:'21:00',by:'Marketing Dept.',pax:2000,fee:250000,status:'confirmed'},
+    {id:'EV-002',name:'Tech Expo 2026',hall:'Hall B',date:'2026-07-12',timeS:'08:00',timeE:'18:00',by:'Digital Agency',pax:500,fee:80000,status:'pending'},
+  ]);
+  // Training
+  DB.set('training',[
+    {id:'TR-001',name:'Electrical Safety (LV)',strategy:'Security',date:'2026-01-15',inst:'อ.วิชัย',pax:24,hrs:6,status:'done'},
+    {id:'TR-002',name:'eNGINNo SBS Platform',strategy:'Facility',date:'2026-01-22',inst:'PSD Engineering',pax:18,hrs:8,status:'done'},
+    {id:'TR-003',name:'ISO 14001 Awareness',strategy:'Energy',date:'2026-08-05',inst:'Consultant',pax:32,hrs:4,status:'planned'},
+    {id:'TR-004',name:'FMEA Workshop',strategy:'Facility',date:'2026-08-12',inst:'อ.สมชาย',pax:20,hrs:6,status:'planned'},
+  ]);
+  // Competency
+  DB.set('competency',[
+    {id:'COMP-001',name:'Mr.Engineering A',dept:'Engineering',elec:4,mech:3,bas:4,safety:4,esg:3,facility:4},
+    {id:'COMP-002',name:'ช่าง ก',dept:'Maintenance',elec:4,mech:3,bas:2,safety:3,esg:2,facility:3},
+    {id:'COMP-003',name:'นายรักษาความปลอดภัย',dept:'Security',elec:2,mech:1,bas:2,safety:4,esg:2,facility:2},
+  ]);
+  // Certs
+  DB.set('certs',[
+    {id:'CERT-001',person:'Mr.Engineering A',cert:'วิศวกรรมไฟฟ้า (กว.)',org:'วิศวกรรมสภา',issued:'2024-01-01',expires:'2026-12-31',status:'valid'},
+    {id:'CERT-002',person:'ช่าง ก',cert:'Safety Officer วิชาชีพ',org:'กระทรวงแรงงาน',issued:'2023-03-01',expires:'2026-08-01',status:'expiring'},
+  ]);
+  DB.set('seeded',true);
+}
+
+// ── POPULATE ASSET SELECTS ──
+function populateAssetSelects(){
+  const assets=DB.get('assets',[]);
+  ['wr-asset','pm-asset'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.innerHTML='<option value="">-- เลือก Asset --</option>'+assets.map(a=>`<option value="${a.id}">${a.id} — ${a.name}</option>`).join('');}
+  });
+}
+
+// ── DESTROY CHART ──
+function dc(k){if(charts[k]){charts[k].destroy();delete charts[k];}}
+
+// ════ DASHBOARD ════
+function refreshDash(){
+  const assets=DB.get('assets',[]);
+  const wr=DB.get('wr',[]);
+  const ppm=DB.get('ppm',[]);
+  const tenants=DB.get('tenants',[]);
+  const parking=DB.get('parking',[]);
+  const energy=DB.get('energy',[]);
+  const today=new Date().toISOString().split('T')[0];
+  const todayE=energy.filter(e=>e.date===today&&e.src!=='Solar').reduce((s,e)=>s+(parseFloat(e.kwh)||0),0);
+  const openWR=wr.filter(w=>w.status==='open'||w.status==='inprog');
+  const closedWR=wr.filter(w=>w.status==='closed');
+  const mttr=closedWR.length?closedWR.reduce((s,w)=>s+(w.mttr||0),0)/closedWR.length:0;
+  const parkUsed=parking.filter(p=>p.status==='used').length;
+  const rev=tenants.filter(t=>t.status==='active').reduce((s,t)=>s+(parseFloat(t.rent)||0),0);
+  document.getElementById('d-assets').textContent=assets.length;
+  document.getElementById('d-wr').textContent=openWR.length;
+  document.getElementById('d-ppm').textContent=ppm.filter(p=>p.status==='planned').length;
+  document.getElementById('d-kwh').textContent=todayE.toFixed(0)||'1,420';
+  document.getElementById('d-tenant').textContent=tenants.filter(t=>t.status==='active').length;
+  document.getElementById('d-mttr').textContent=mttr.toFixed(1)+'h';
+  document.getElementById('d-park').textContent=parking.length?Math.round(parkUsed/parking.length*100)+'%':'0%';
+  document.getElementById('d-rev').textContent=fmtCurr(rev);
+  document.getElementById('d-safe').textContent='180';
+  document.getElementById('nb-wr').textContent=openWR.length; document.getElementById('nb-wr').style.display=openWR.length?'':'none';
+  document.getElementById('nb-bcs').style.display=openWR.filter(w=>w.priority==='critical').length?'':'none';
+  // Update ring dots
+  document.getElementById('r1').className='ring-dot '+(openWR.length>0?'r-warn':'r-ok');
+  document.getElementById('r3').className='ring-dot '+(DB.get('incidents',[]).length>0?'r-crit':'r-ok');
+  // WR chart
+  dc('wr');
+  const ctx=document.getElementById('c-wr');
+  if(ctx) charts.wr=new Chart(ctx,{type:'doughnut',data:{labels:['Open','In Progress','Closed'],datasets:[{data:[wr.filter(w=>w.status==='open').length,wr.filter(w=>w.status==='inprog').length,wr.filter(w=>w.status==='closed').length],backgroundColor:['#F97316','#3B82F6','#22C55E'],borderWidth:0,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8B949E',font:{size:10}}}}}});
+  // Energy chart
+  dc('energy');
+  const days=[],vals=[];
+  for(let i=6;i>=0;i--){const d=new Date(Date.now()-86400000*i);days.push(d.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit'}));const ds=d.toISOString().split('T')[0];vals.push(energy.filter(e=>e.date===ds&&e.src!=='Solar').reduce((s,e)=>s+(parseFloat(e.kwh)||0),0).toFixed(0));}
+  const ctx2=document.getElementById('c-energy');
+  if(ctx2) charts.energy=new Chart(ctx2,{type:'line',data:{labels:days,datasets:[{label:'kWh',data:vals,borderColor:'#14B8A6',fill:true,backgroundColor:'rgba(20,184,166,0.08)',tension:.4,pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8B949E',font:{size:10}}},y:{ticks:{color:'#8B949E'},grid:{color:'#21262D'}}}}});
+  // Asset condition
+  dc('asset');
+  const ctx3=document.getElementById('c-asset');
+  if(ctx3) charts.asset=new Chart(ctx3,{type:'doughnut',data:{labels:['Active','Warning','Critical'],datasets:[{data:[assets.filter(a=>a.status==='active').length,assets.filter(a=>a.status==='warning').length,assets.filter(a=>a.status==='critical').length],backgroundColor:['#22C55E','#EAB308','#EF4444'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8B949E',font:{size:10}}}}}});
+  // Tenant occupancy
+  const el=document.getElementById('tenant-occ-list');
+  if(el) el.innerHTML=tenants.slice(0,4).map(t=>`<div class="metric-row"><span style="font-size:11px">${t.name}</span><span class="badge bg-green">${fmtCurr(t.rent)}/mo</span></div>`).join('');
+  // Alerts
+  const al=document.getElementById('alerts-dash');
+  if(al) al.innerHTML=[
+    ...(openWR.filter(w=>w.priority==='critical').map(w=>`<div style="background:var(--red-dim);border-left:3px solid var(--red);border-radius:var(--r);padding:8px 12px;margin-bottom:6px;font-size:11px">🔴 WR Critical — ${w.desc.slice(0,40)}</div>`)),
+    ...(assets.filter(a=>a.status==='warning').map(a=>`<div style="background:var(--yellow-dim);border-left:3px solid var(--yellow);border-radius:var(--r);padding:8px 12px;margin-bottom:6px;font-size:11px">🟡 ${a.name} — สถานะ Warning</div>`)),
+  ].slice(0,4).join('')||'<div class="t-muted" style="padding:16px;text-align:center;font-size:12px">✅ ไม่มีการแจ้งเตือน</div>';
+  // Sync to main
+  DB.set('assets',DB.get('assets',[]));
+  localStorage.setItem('sbs_cm_assets',JSON.stringify(assets.length));
+  localStorage.setItem('sbs_cm_wo',JSON.stringify(openWR.length));
+}
+
+// ════ BCS ════
+function renderBCS(){
+  const assets=DB.get('assets',[]);
+  const wr=DB.get('wr',[]);
+  const ma=DB.get('ma',[]);
+  const openWR=wr.filter(w=>w.status==='open'||w.status==='inprog');
+  const warnAssets=assets.filter(a=>a.status==='warning'||a.status==='critical');
+  document.getElementById('ring-wr-status').className='badge '+(openWR.length>0?'bg-yellow':'bg-green');
+  document.getElementById('ring-wr-status').textContent=openWR.length>0?'⚠ มี WR ค้าง':'✅ ปกติ';
+  document.getElementById('ring-ppm-status').className='badge '+(DB.get('ppm',[]).filter(p=>{return p.status==='planned'&&new Date(p.planDate)<new Date();}).length>0?'bg-red':'bg-green');
+  const critList=document.getElementById('crit-assets-list');
+  if(critList) critList.innerHTML=warnAssets.length?warnAssets.map(a=>`<div class="metric-row"><span style="font-size:11px"><span class="badge ${a.status==='warning'?'bg-yellow':'bg-red'}">${a.status}</span> ${a.name}</span><span style="font-size:10px" class="t-muted">${a.loc}</span></div>`).join(''):'<div class="t-muted" style="padding:16px;text-align:center;font-size:12px">✅ ทุก Asset สถานะปกติ</div>';
+  renderFloorAssets(currentFloor||'roof');
+}
+
+let currentFloor='roof';
+function setFloor(f,btn){
+  currentFloor=f;
+  document.querySelectorAll('.floor-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const labels={roof:'ROOF LEVEL',l3:'FLOOR 3',l2:'FLOOR 2',l1:'GROUND FLOOR (G/F)',b1:'BASEMENT 1',b2:'BASEMENT 2'};
+  document.getElementById('floor-label').textContent=labels[f]||f.toUpperCase();
+  renderFloorAssets(f);
+}
+
+function renderFloorAssets(floor){
+  const assets=DB.get('assets',[]);
+  const floorMap={roof:['CM-AST-00006'],l3:[],l2:[],l1:['CM-AST-00002','CM-AST-00009'],b1:['CM-AST-00003','CM-AST-00004','CM-AST-00007'],b2:['CM-AST-00001','CM-AST-00005']};
+  const ids=floorMap[floor]||[];
+  const g=document.getElementById('asset-dots');
+  if(!g) return;
+  const positions={
+    'CM-AST-00006':{x:300,y:180,label:'☀ Solar 200kW'},
+    'CM-AST-00002':{x:200,y:150,label:'❄ AHU-G01'},
+    'CM-AST-00009':{x:400,y:200,label:'🖥 BMS'},
+    'CM-AST-00003':{x:150,y:200,label:'🛗 Lift A1'},
+    'CM-AST-00004':{x:250,y:200,label:'🛗 Lift A2'},
+    'CM-AST-00007':{x:400,y:150,label:'🔥 Fire Sys'},
+    'CM-AST-00001':{x:200,y:200,label:'❄ Chiller 1'},
+    'CM-AST-00005':{x:380,y:200,label:'⚡ Gen 1000'},
+  };
+  const assetMap={};
+  assets.forEach(a=>assetMap[a.id]=a);
+  const colors={active:'#22C55E',warning:'#EAB308',critical:'#EF4444',inactive:'#8B949E'};
+  g.innerHTML=ids.map(id=>{
+    const a=assetMap[id]; if(!a) return '';
+    const pos=positions[id]||{x:Math.random()*500+50,y:Math.random()*280+40,label:a.name};
+    const c=colors[a.status]||'#8B949E';
+    return `<g onclick="alert('${a.id}\\n${a.name}\\nSystem: ${a.sys}\\nLocation: ${a.loc}\\nStatus: ${a.status}\\nBrand: ${a.brand}')" style="cursor:pointer">
+      <circle cx="${pos.x}" cy="${pos.y}" r="18" fill="${c}" fill-opacity="0.2" stroke="${c}" stroke-width="1.5"/>
+      <circle cx="${pos.x}" cy="${pos.y}" r="8" fill="${c}"/>
+      <text x="${pos.x}" y="${pos.y+34}" text-anchor="middle" font-family="Sarabun" font-size="10" fill="#8B949E">${pos.label}</text>
+    </g>`;
+  }).join('');
+}
+function refreshBCS(){renderBCS();}
+function exportCSV(){exportXLS(DB.get('assets',[]),'BCS_Assets');}
+
+// ════ ASSETS ════
+function renderAssets(){
+  const assets=DB.get('assets',[]);
+  const nbv=a=>{const yr=(new Date()-new Date(a.install))/(365.25*86400000);return Math.max(0,a.cost*(1-yr/(a.life||10))).toFixed(0);};
+  document.getElementById('a-total').textContent=assets.length;
+  document.getElementById('a-active').textContent=assets.filter(a=>a.status==='active').length;
+  document.getElementById('a-warn').textContent=assets.filter(a=>a.status==='warning').length;
+  document.getElementById('a-crit').textContent=assets.filter(a=>a.status==='critical').length;
+  document.getElementById('assets-tbody').innerHTML=assets.map(a=>`<tr>
+    <td><span class="tag">${a.id}</span></td>
+    <td class="fw-6" style="color:var(--text)">${a.name}</td>
+    <td><span class="badge bg-blue">${a.sys}</span></td>
+    <td style="font-size:11px">${a.loc}</td>
+    <td style="font-size:11px">${a.brand||'—'}</td>
+    <td class="ff-m" style="font-size:10px">${a.serial||'—'}</td>
+    <td style="font-size:11px">${fmtDate(a.install)}</td>
+    <td style="text-align:center">${a.life||'—'}</td>
+    <td class="ff-m" style="font-size:11px">${fmtCurr(a.cost)}</td>
+    <td class="ff-m" style="font-size:11px;color:var(--teal)">${fmtCurr(nbv(a))}</td>
+    <td><span class="badge ${a.lc==='new'?'bg-cyan':a.lc==='operating'?'bg-green':a.lc==='aging'?'bg-yellow':a.lc==='critical'?'bg-red':'bg-gray'}">${a.lc}</span></td>
+    <td><span class="badge ${a.status==='active'?'bg-green':a.status==='warning'?'bg-yellow':'bg-red'}">${a.status==='active'?'🟢':a.status==='warning'?'🟡':'🔴'} ${a.status}</span></td>
+    <td><div class="flex gap-8">
+      <button class="btn btn-secondary btn-sm" onclick="toggleAssetStatus('${a.id}')">✏</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteAsset('${a.id}')">🗑</button>
+    </div></td>
+  </tr>`).join('')||'<tr><td colspan="13" style="text-align:center;padding:24px;color:var(--text3)">ยังไม่มี Asset</td></tr>';
+}
+
+function saveAsset(){
+  const assets=DB.get('assets',[]);
+  const a={id:genId('CM-AST'),name:document.getElementById('a-name').value,sys:document.getElementById('a-sys').value,loc:document.getElementById('a-loc').value,status:document.getElementById('a-status').value,brand:document.getElementById('a-brand').value,serial:document.getElementById('a-serial').value,cost:parseFloat(document.getElementById('a-cost').value)||0,install:document.getElementById('a-install').value,life:parseInt(document.getElementById('a-life').value)||10,lc:document.getElementById('a-lc').value,module:document.getElementById('a-module').value};
+  if(!a.name){alert('กรุณากรอกชื่อ Asset');return;}
+  assets.push(a);DB.set('assets',assets);closeModal('addAssetModal');renderAssets();
+  syncToSheets('Building_Assets',a);alert('✅ เพิ่ม Asset สำเร็จ: '+a.id);
+}
+function toggleAssetStatus(id){const assets=DB.get('assets',[]);const i=assets.findIndex(a=>a.id===id);if(i<0)return;const map={active:'warning',warning:'critical',critical:'active'};assets[i].status=map[assets[i].status]||'active';DB.set('assets',assets);renderAssets();}
+function deleteAsset(id){if(!confirm('ลบ Asset "'+id+'"?'))return;DB.set('assets',DB.get('assets',[]).filter(a=>a.id!==id));renderAssets();}
+function filterAssetSys(v){renderAssets();}
+function filterAssetStatus(v){renderAssets();}
+function exportAssets(){exportXLS(DB.get('assets',[]),'Assets');}
+
+// ════ WR ════
+function renderWR(){
+  const wr=DB.get('wr',[]);
+  const open=wr.filter(w=>w.status==='open').length;
+  const ip=wr.filter(w=>w.status==='inprog').length;
+  const closed=wr.filter(w=>w.status==='closed');
+  const mttr=closed.length?closed.reduce((s,w)=>s+(w.mttr||0),0)/closed.length:0;
+  document.getElementById('wr-open').textContent=open;
+  document.getElementById('wr-ip').textContent=ip;
+  document.getElementById('wr-closed').textContent=closed.length;
+  document.getElementById('wr-mttr').textContent=mttr.toFixed(1);
+  document.getElementById('wr-crit').textContent=wr.filter(w=>w.priority==='critical'&&w.status!=='closed').length;
+  const typeColor={ER:'bg-red',CM:'bg-orange',PJ:'bg-blue'};
+  const priColor={critical:'bg-red',high:'bg-yellow',normal:'bg-green'};
+  document.getElementById('wr-tbody').innerHTML=wr.map(w=>`<tr>
+    <td><span class="tag">${w.id}</span></td>
+    <td style="font-size:11px">${w.assetName||w.asset||'—'}</td>
+    <td><span class="badge ${typeColor[w.type]||'bg-gray'}">${w.type}</span></td>
+    <td style="font-size:11px;max-width:180px">${w.desc}</td>
+    <td><span class="badge ${priColor[w.priority]||'bg-gray'}">${w.priority}</span></td>
+    <td style="font-size:11px">${w.by||'—'}</td>
+    <td style="font-size:11px">${fmtDate(w.date)}</td>
+    <td style="font-size:11px">${w.tech||'—'}</td>
+    <td class="ff-m">${w.mttr||'—'}</td>
+    <td class="ff-m">${w.cost?fmtCurr(w.cost):'—'}</td>
+    <td><span class="badge ${w.status==='closed'?'bg-green':w.status==='inprog'?'bg-blue':'bg-orange'}">${w.status}</span></td>
+    <td><div class="flex gap-8">
+      ${w.status==='open'?`<button class="btn btn-secondary btn-sm" onclick="updateWR('${w.id}','inprog')">▶</button>`:''}
+      ${w.status==='inprog'?`<button class="btn btn-success btn-sm" onclick="closeWR('${w.id}')">✅</button>`:''}
+      <button class="btn btn-danger btn-sm" onclick="deleteWR('${w.id}')">🗑</button>
+    </div></td>
+  </tr>`).join('')||'<tr><td colspan="12" style="text-align:center;padding:24px;color:var(--text3)">ไม่มี Work Request</td></tr>';
+
+  // WR Trend chart
+  dc('wr-trend');
+  const months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.'];
+  const ctx=document.getElementById('c-wr-trend');
+  if(ctx) charts['wr-trend']=new Chart(ctx,{type:'bar',data:{labels:months,datasets:[{label:'WR Count',data:[3,5,2,6,4,8,wr.length],backgroundColor:'rgba(249,115,22,0.7)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8B949E'}},y:{ticks:{color:'#8B949E'},grid:{color:'#21262D'}}}}});
+
+  // MTTR chart
+  dc('mttr');
+  const ctx2=document.getElementById('c-mttr');
+  if(ctx2) charts.mttr=new Chart(ctx2,{type:'bar',data:{labels:['AC','TR','EE','FP','SN','BAS'],datasets:[{label:'MTTR (h)',data:[3.5,4.5,2.0,1.5,3.0,5.0],backgroundColor:'rgba(59,130,246,0.7)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8B949E'}},y:{ticks:{color:'#8B949E'},grid:{color:'#21262D'}}}}});
+}
+
+function saveWR(){
+  const wr=DB.get('wr',[]);
+  const assetId=document.getElementById('wr-asset').value;
+  const assets=DB.get('assets',[]);
+  const asset=assets.find(a=>a.id===assetId);
+  const pri=document.querySelector('input[name="wr-pri"]:checked')?.value||'normal';
+  const w={id:genId('CM-WR'),asset:assetId,assetName:asset?.name||'—',type:document.getElementById('wr-type').value,desc:document.getElementById('wr-desc').value,priority:pri,by:document.getElementById('wr-by').value||'Anonymous',tech:document.getElementById('wr-tech').value,phone:document.getElementById('wr-phone').value,status:'open',date:new Date().toISOString(),mttr:null,cost:0};
+  if(!w.desc){alert('กรุณากรอกรายละเอียดปัญหา');return;}
+  wr.push(w);DB.set('wr',wr);closeModal('addWRModal');renderWR();
+  syncToSheets('Work_Orders',w);alert('✅ แจ้ง Work Request สำเร็จ: '+w.id);
+}
+function updateWR(id,status){const wr=DB.get('wr',[]);const i=wr.findIndex(w=>w.id===id);if(i<0)return;wr[i].status=status;DB.set('wr',wr);renderWR();}
+function closeWR(id){const wr=DB.get('wr',[]);const i=wr.findIndex(w=>w.id===id);if(i<0)return;const mttr=parseFloat(prompt('MTTR (ชั่วโมง):','0'))||0;const cost=parseFloat(prompt('ค่าใช้จ่าย (฿):','0'))||0;wr[i].status='closed';wr[i].mttr=mttr;wr[i].cost=cost;wr[i].closeDate=new Date().toISOString();DB.set('wr',wr);renderWR();alert('✅ ปิด WR สำเร็จ');}
+function deleteWR(id){if(!confirm('ลบ WR "'+id+'"?'))return;DB.set('wr',DB.get('wr',[]).filter(w=>w.id!==id));renderWR();}
+function filterWRStatus(v){renderWR();}
+function filterWRPriority(v){renderWR();}
+function exportWR(){exportXLS(DB.get('wr',[]),'WorkRequest');}
+
+// ════ PPM ════
+function renderPPM(){
+  const ppm=DB.get('ppm',[]);
+  const planned=ppm.filter(p=>p.status==='planned');
+  const done=ppm.filter(p=>p.status==='done');
+  const over=planned.filter(p=>new Date(p.planDate)<new Date());
+  const comp=ppm.length?Math.round(done.length/ppm.length*100):0;
+  document.getElementById('ppm-total').textContent=ppm.length;
+  document.getElementById('ppm-plan').textContent=planned.length;
+  document.getElementById('ppm-done').textContent=done.length;
+  document.getElementById('ppm-over').textContent=over.length;
+  document.getElementById('ppm-comp').textContent=comp+'%';
+  document.getElementById('ppm-tbody').innerHTML=ppm.map(p=>{
+    const isOver=p.status==='planned'&&new Date(p.planDate)<new Date();
+    return `<tr>
+      <td><span class="tag">${p.id}</span></td><td><span class="tag">${p.asset}</span></td>
+      <td class="fw-6" style="color:var(--text)">${p.title}</td>
+      <td><span class="badge bg-blue">${p.sys}</span></td>
+      <td><span class="badge bg-gray">${p.freq}</span></td>
+      <td style="font-size:11px;color:${isOver?'var(--red)':'var(--text2)'}">${fmtDate(p.planDate)}</td>
+      <td style="font-size:11px">${fmtDate(p.actualDate)||'—'}</td>
+      <td style="font-size:11px">${p.tech||'—'}</td>
+      <td class="ff-m">${p.mtbf?p.mtbf+'h':'—'}</td>
+      <td class="ff-m">${fmtCurr(p.cost)}</td>
+      <td><span class="badge ${p.status==='done'?'bg-green':isOver?'bg-red':'bg-yellow'}">${p.status==='done'?'✅ Done':isOver?'⏰ Overdue':'📅 Planned'}</span></td>
+      <td><div class="flex gap-8">
+        ${p.status!=='done'?`<button class="btn btn-success btn-sm" onclick="completePPM('${p.id}')">✅ Done</button>`:''}
+        <button class="btn btn-danger btn-sm" onclick="deletePPM('${p.id}')">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="12" style="text-align:center;padding:24px;color:var(--text3)">ไม่มีแผน PM</td></tr>';
+}
+function savePPM(){
+  const ppm=DB.get('ppm',[]);
+  const assetId=document.getElementById('pm-asset').value;
+  const assets=DB.get('assets',[]);
+  const asset=assets.find(a=>a.id===assetId);
+  const p={id:genId('CM-PPM'),asset:assetId,assetName:asset?.name||'—',title:document.getElementById('pm-title').value,sys:document.getElementById('pm-sys').value,freq:document.getElementById('pm-freq').value,planDate:document.getElementById('pm-date').value,tech:document.getElementById('pm-tech').value,cost:parseFloat(document.getElementById('pm-cost').value)||0,status:'planned'};
+  if(!p.title||!p.assetId){alert('กรุณากรอกข้อมูลให้ครบ');return;}
+  ppm.push(p);DB.set('ppm',ppm);closeModal('addPPMModal');renderPPM();syncToSheets('Preventive_Maint',p);alert('✅ เพิ่มแผน PM สำเร็จ: '+p.id);
+}
+function completePPM(id){const ppm=DB.get('ppm',[]);const i=ppm.findIndex(p=>p.id===id);if(i<0)return;ppm[i].status='done';ppm[i].actualDate=new Date().toISOString();const result=prompt('ผลการตรวจสอบ:','ผ่าน');ppm[i].result=result||'ผ่าน';DB.set('ppm',ppm);renderPPM();alert('✅ บันทึกผล PM สำเร็จ');}
+function deletePPM(id){if(!confirm('ลบแผน PM?'))return;DB.set('ppm',DB.get('ppm',[]).filter(p=>p.id!==id));renderPPM();}
+
+// ════ OPM ════
+function renderOPM(){
+  const assets=DB.get('assets',[]);
+  document.getElementById('opm-run').textContent=assets.filter(a=>a.status==='active').length;
+  document.getElementById('opm-hrs').textContent=(assets.length*24*30).toLocaleString('th-TH');
+  dc('oee');dc('down');
+  const days=[],oees=[];
+  for(let i=6;i>=0;i--){const d=new Date(Date.now()-86400000*i);days.push(d.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit'}));oees.push((80+Math.random()*15).toFixed(1));}
+  const ctx=document.getElementById('c-oee');
+  if(ctx) charts.oee=new Chart(ctx,{type:'line',data:{labels:days,datasets:[{label:'OEE %',data:oees,borderColor:'#22C55E',fill:true,backgroundColor:'rgba(34,197,94,0.08)',tension:.4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8B949E'}},y:{min:60,max:100,ticks:{color:'#8B949E'},grid:{color:'#21262D'}}}}});
+  const ctx2=document.getElementById('c-down');
+  if(ctx2) charts.down=new Chart(ctx2,{type:'bar',data:{labels:['AC','TR','EE','FP','SN','BAS'],datasets:[{label:'Downtime (h)',data:[2.5,0.5,1.0,0,1.5,0.5],backgroundColor:'rgba(249,115,22,0.7)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8B949E'}},y:{ticks:{color:'#8B949E'},grid:{color:'#21262D'}}}}});
+}
+
+// ════ MA ════
+function renderMA(){
+  const ma=DB.get('ma',[]);
+  const today=new Date();const soon=new Date(Date.now()+30*86400000);
+  const active=ma.filter(m=>new Date(m.end)>today);
+  const expiring=active.filter(m=>new Date(m.end)<soon);
+  const expired=ma.filter(m=>new Date(m.end)<=today);
+  document.getElementById('ma-active').textContent=active.length;
+  document.getElementById('ma-exp').textContent=expiring.length;
+  document.getElementById('ma-over').textContent=expired.length;
+  document.getElementById('ma-val').textContent=fmtCurr(ma.reduce((s,m)=>s+(parseFloat(m.value)||0),0));
+  document.getElementById('ma-tbody').innerHTML=ma.map(m=>{
+    const exp=new Date(m.end);const isExp=exp<today;const isSoon=!isExp&&exp<soon;
+    const days=Math.ceil((exp-today)/86400000);
+    return `<tr>
+      <td><span class="tag">${m.id}</span></td><td style="font-size:10px">${m.asset}</td>
+      <td class="fw-6">${m.vendor}</td><td><span class="badge bg-blue">${m.type}</span></td>
+      <td style="font-size:11px">${fmtDate(m.start)}</td>
+      <td style="font-size:11px;color:${isExp?'var(--red)':isSoon?'var(--yellow)':'var(--text2)'}">${fmtDate(m.end)}</td>
+      <td class="ff-m" style="color:${isExp?'var(--red)':isSoon?'var(--yellow)':'var(--green)'}">${isExp?'หมดแล้ว':days+' วัน'}</td>
+      <td class="ff-m">${fmtCurr(m.value)}</td><td class="ff-m">${m.sla}h</td>
+      <td><span class="badge ${isExp?'bg-red':isSoon?'bg-yellow':'bg-green'}">${isExp?'⏰ หมด':isSoon?'⚠ ใกล้หมด':'✅ Active'}</span></td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteMA('${m.id}')">🗑</button></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="11" style="text-align:center;padding:24px;color:var(--text3)">ไม่มีสัญญา</td></tr>';
+}
+function deleteMA(id){if(!confirm('ลบสัญญา?'))return;DB.set('ma',DB.get('ma',[]).filter(m=>m.id!==id));renderMA();}
+
+// ════ INVENTORY ════
+function renderInv(){
+  const inv=DB.get('inv',[]);
+  const ok=inv.filter(i=>i.qty>i.min);
+  const low=inv.filter(i=>i.qty>0&&i.qty<=i.min);
+  const val=inv.reduce((s,i)=>s+(i.qty*i.price),0);
+  document.getElementById('inv-total').textContent=inv.length;
+  document.getElementById('inv-ok').textContent=ok.length;
+  document.getElementById('inv-low').textContent=low.length;
+  document.getElementById('inv-val').textContent=fmtCurr(val);
+  document.getElementById('inv-tbody').innerHTML=inv.map(i=>{
+    const isLow=i.qty<=i.min,isOut=i.qty<=0;
+    return `<tr>
+      <td class="ff-m">${i.code}</td><td class="fw-6" style="color:var(--text)">${i.name}</td>
+      <td><span class="badge bg-blue">${i.type}</span></td><td>${i.unit}</td>
+      <td class="ff-m fw-7" style="color:${isOut?'var(--red)':isLow?'var(--yellow)':'var(--green)'}">${i.qty}</td>
+      <td class="ff-m t-muted">${i.min}</td><td class="ff-m t-muted">${i.max}</td>
+      <td class="ff-m">${fmtCurr(i.price)}</td>
+      <td class="ff-m">${fmtCurr(i.qty*i.price)}</td>
+      <td><span class="badge ${isOut?'bg-red':isLow?'bg-yellow':'bg-green'}">${isOut?'❌ หมด':isLow?'⚠ ใกล้หมด':'✅ OK'}</span></td>
+      <td><button class="btn btn-secondary btn-sm" onclick="adjustInv('${i.id}')">✏</button></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="11" style="text-align:center;padding:24px;color:var(--text3)">ไม่มีข้อมูล</td></tr>';
+}
+function adjustInv(id){const inv=DB.get('inv',[]);const i=inv.findIndex(x=>x.id===id);if(i<0)return;const qty=parseInt(prompt(`ปรับจำนวน "${inv[i].name}" (ปัจจุบัน: ${inv[i].qty}):`,inv[i].qty));if(isNaN(qty))return;inv[i].qty=qty;DB.set('inv',inv);renderInv();}
+function exportInv(){exportXLS(DB.get('inv',[]),'Inventory');}
+
+// ════ ENERGY ════
+function renderEnergy(){
+  const energy=DB.get('energy',[]);
+  const today=new Date().toISOString().split('T')[0];
+  const todayD=energy.filter(e=>e.date===today);
+  const grid=todayD.filter(e=>e.src!=='Solar');
+  const solar=todayD.filter(e=>e.src==='Solar');
+  const kwh=grid.reduce((s,e)=>s+(parseFloat(e.kwh)||0),0);
+  const solarKwh=solar.reduce((s,e)=>s+(parseFloat(e.kwh)||0),0);
+  const peak=Math.max(...todayD.map(e=>parseFloat(e.peak)||0),0);
+  document.getElementById('e-today').textContent=kwh.toFixed(0)||'1,420';
+  document.getElementById('e-month').textContent=(kwh*30).toFixed(0)||'42,600';
+  document.getElementById('e-cost').textContent=fmtCurr(kwh*4.72)||'฿6,699';
+  document.getElementById('e-solar').textContent=solarKwh.toFixed(0)||'480';
+  document.getElementById('e-peak').textContent=peak.toFixed(0)||'680';
+  const days=[],vals=[],solVals=[];
+  for(let i=6;i>=0;i--){const d=new Date(Date.now()-86400000*i);days.push(d.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit'}));const ds=d.toISOString().split('T')[0];vals.push(energy.filter(e=>e.date===ds&&e.src!=='Solar').reduce((s,e)=>s+(parseFloat(e.kwh)||0),0).toFixed(0)||Math.round(1200+Math.random()*400));solVals.push(energy.filter(e=>e.date===ds&&e.src==='Solar').reduce((s,e)=>s+(parseFloat(e.kwh)||0),0).toFixed(0)||Math.round(60+Math.random()*80));}
+  dc('energy-full');dc('energy-zone');
+  const ctx=document.getElementById('c-energy-full');
+  if(ctx) charts['energy-full']=new Chart(ctx,{type:'bar',data:{labels:days,datasets:[{label:'Grid kWh',data:vals,backgroundColor:'rgba(59,130,246,0.7)',borderRadius:4},{label:'Solar kWh',data:solVals,backgroundColor:'rgba(34,197,94,0.7)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8B949E',font:{size:10}}}},scales:{x:{ticks:{color:'#8B949E'}},y:{ticks:{color:'#8B949E'},grid:{color:'#21262D'}}}}});
+  const ctx2=document.getElementById('c-energy-zone');
+  if(ctx2) charts['energy-zone']=new Chart(ctx2,{type:'doughnut',data:{labels:['Zone A','Zone B','Chiller','Common','Solar'],datasets:[{data:[380,290,480,180,90],backgroundColor:['#F97316','#3B82F6','#14B8A6','#A855F7','#22C55E'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8B949E',font:{size:10}}}}}});
+  document.getElementById('energy-tbody').innerHTML=energy.slice(0,15).map(e=>`<tr><td style="font-size:11px">${e.date}</td><td>${e.zone}</td><td class="ff-m t-teal">${e.kwh}</td><td class="ff-m">${e.peak||'—'}</td><td class="ff-m">${fmtCurr(e.cost)}</td><td><span class="badge ${e.src==='Solar'?'bg-green':'bg-blue'}">${e.src}</span></td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;padding:16px;color:var(--text3)">ยังไม่มีข้อมูล</td></tr>';
+}
+function saveEnergy(){
+  const energy=DB.get('energy',[]);
+  const e={id:'EN-'+Date.now(),date:document.getElementById('en-date').value,zone:document.getElementById('en-zone').value,kwh:document.getElementById('en-kwh').value,peak:document.getElementById('en-peak').value,cost:document.getElementById('en-cost').value,src:document.getElementById('en-src').value};
+  if(!e.date||!e.kwh){alert('กรุณากรอกวันที่และ kWh');return;}
+  energy.push(e);DB.set('energy',energy);closeModal('addEnergyModal');renderEnergy();alert('✅ บันทึกมิเตอร์สำเร็จ');
+}
+function exportEnergy(){exportXLS(DB.get('energy',[]),'Energy');}
+
+// ════ CARBON ════
+function renderCarbon(){
+  dc('netzero');dc('scope');
+  const ctx=document.getElementById('c-netzero');
+  if(ctx) charts.netzero=new Chart(ctx,{type:'line',data:{labels:['2026','2030','2035','2040','2045','2050'],datasets:[{label:'tCO₂e Target',data:[284.6,199.2,128.1,57.0,28.5,0],borderColor:'#22C55E',fill:true,backgroundColor:'rgba(34,197,94,0.08)',tension:.4,pointRadius:5},{label:'Business as Usual',data:[284.6,295,310,325,340,355],borderColor:'#EF4444',borderDash:[5,5],fill:false,tension:.4,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8B949E',font:{size:10}}}},scales:{x:{ticks:{color:'#8B949E'}},y:{ticks:{color:'#8B949E'},grid:{color:'#21262D'}}}}});
+  const ctx2=document.getElementById('c-scope');
+  if(ctx2) charts.scope=new Chart(ctx2,{type:'doughnut',data:{labels:['Scope 1 (เชื้อเพลิง)','Scope 2 (ไฟฟ้า)','Scope 3 (อื่นๆ)'],datasets:[{data:[42.1,198.4,44.1],backgroundColor:['#F97316','#3B82F6','#A855F7'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8B949E',font:{size:10}}}}}});
+}
+
+// ════ ACCESS ════
+function renderAccess(){
+  const acc=DB.get('access',[]);
+  const today=new Date().toISOString().split('T')[0];
+  const todayAcc=acc.filter(a=>a.date===today);
+  document.getElementById('acc-in').textContent=todayAcc.filter(a=>a.dir==='IN').length;
+  document.getElementById('acc-out').textContent=todayAcc.filter(a=>a.dir==='OUT').length;
+  document.getElementById('acc-deny').textContent=todayAcc.filter(a=>a.status==='denied').length;
+  const ins=todayAcc.filter(a=>a.dir==='IN').length;const outs=todayAcc.filter(a=>a.dir==='OUT').length;
+  document.getElementById('acc-in-bldg').textContent=Math.max(0,ins-outs);
+  document.getElementById('access-tbody').innerHTML=acc.map(a=>`<tr>
+    <td class="fw-6">${a.name}</td><td class="tag ff-m">${a.card}</td>
+    <td><span class="badge bg-blue">${a.role}</span></td><td style="font-size:11px">${a.zone}</td>
+    <td style="font-size:11px">${a.date}</td><td class="ff-m">${a.time}</td>
+    <td style="font-size:11px">${a.door}</td>
+    <td><span class="badge ${a.dir==='IN'?'bg-green':'bg-orange'}">${a.dir}</span></td>
+    <td><span class="badge ${a.status==='granted'?'bg-green':'bg-red'}">${a.status==='granted'?'✅':'❌'} ${a.status}</span></td>
+  </tr>`).join('')||'<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text3)">ไม่มีข้อมูล</td></tr>';
+}
+function exportAccess(){exportXLS(DB.get('access',[]),'AccessLog');}
+
+// ════ INCIDENT ════
+function renderIncident(){
+  const inc=DB.get('incidents',[]);
+  document.getElementById('inc-ytd').textContent=inc.length;
+  document.getElementById('inc-lti').textContent=inc.filter(i=>i.type==='Lost Time Injury').length;
+  document.getElementById('inc-nm').textContent=inc.filter(i=>i.type==='Near Miss').length;
+  document.getElementById('inc-tbody').innerHTML=inc.map(i=>`<tr>
+    <td><span class="tag">${i.id}</span></td><td style="font-size:11px">${fmtDate(i.date)}</td>
+    <td><span class="badge ${i.type==='Near Miss'?'bg-yellow':i.type==='Lost Time Injury'?'bg-red':'bg-orange'}">${i.type}</span></td>
+    <td style="font-size:11px">${i.loc}</td><td style="font-size:11px;max-width:150px">${i.desc}</td>
+    <td><span class="badge ${i.sev==='Critical'||i.sev==='Major'?'bg-red':i.sev==='Moderate'?'bg-yellow':'bg-green'}">${i.sev}</span></td>
+    <td><span class="badge bg-yellow">Open</span></td>
+    <td><button class="btn btn-danger btn-sm" onclick="deleteInc('${i.id}')">🗑</button></td>
+  </tr>`).join('')||'<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text3)">✅ ไม่มี Incident</td></tr>';
+}
+function saveIncident(){
+  const inc=DB.get('incidents',[]);
+  const i={id:genId('CM-INC'),type:document.getElementById('inc-type').value,sev:document.getElementById('inc-sev').value,date:document.getElementById('inc-date').value,loc:document.getElementById('inc-loc').value,desc:document.getElementById('inc-desc').value,status:'open'};
+  if(!i.loc||!i.desc){alert('กรุณากรอกข้อมูลให้ครบ');return;}
+  inc.push(i);DB.set('incidents',inc);closeModal('addIncModal');renderIncident();alert('✅ บันทึก Incident สำเร็จ');
+}
+function deleteInc(id){if(!confirm('ลบ Incident?'))return;DB.set('incidents',DB.get('incidents',[]).filter(i=>i.id!==id));renderIncident();}
+
+// ════ PTW ════
+function renderPTW(){
+  const ptw=DB.get('ptw',[]);
+  document.getElementById('ptw-active').textContent=ptw.filter(p=>p.status==='active').length;
+  document.getElementById('ptw-pend').textContent=ptw.filter(p=>p.status==='pending').length;
+  document.getElementById('ptw-done').textContent=ptw.filter(p=>p.status==='closed').length;
+  document.getElementById('ptw-exp').textContent=ptw.filter(p=>p.status==='expired').length;
+  document.getElementById('ptw-tbody').innerHTML=ptw.map(p=>`<tr>
+    <td><span class="tag">${p.id}</span></td>
+    <td><span class="badge bg-red">${p.type}</span></td>
+    <td style="font-size:11px">${p.loc}</td>
+    <td style="font-size:11px">${p.by}</td>
+    <td style="font-size:11px">${fmtDate(p.date)}</td>
+    <td class="ff-m" style="font-size:11px">${p.start}–${p.end}</td>
+    <td style="font-size:11px">${p.approvedBy||'—'}</td>
+    <td><span class="badge ${p.status==='active'?'bg-green':p.status==='pending'?'bg-yellow':'bg-gray'}">${p.status}</span></td>
+    <td><div class="flex gap-8">
+      ${p.status==='pending'?`<button class="btn btn-success btn-sm" onclick="approvePTW('${p.id}')">✅ อนุมัติ</button>`:''}
+      ${p.status==='active'?`<button class="btn btn-secondary btn-sm" onclick="closePTW('${p.id}')">🔒 ปิด</button>`:''}
+    </div></td>
+  </tr>`).join('')||'<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text3)">ไม่มี PTW</td></tr>';
+}
+function savePTW(){
+  const ptw=DB.get('ptw',[]);
+  const p={id:genId('CM-PTW'),type:document.getElementById('ptw-type').value,loc:document.getElementById('ptw-loc').value,by:document.getElementById('ptw-by').value,date:document.getElementById('ptw-date').value,start:document.getElementById('ptw-start').value,end:document.getElementById('ptw-end').value,desc:document.getElementById('ptw-desc').value,status:'pending',approvedBy:'รออนุมัติ'};
+  if(!p.loc){alert('กรุณากรอกสถานที่');return;}
+  ptw.push(p);DB.set('ptw',ptw);closeModal('addPTWModal');renderPTW();alert('✅ ออก PTW สำเร็จ: '+p.id);
+}
+function approvePTW(id){const ptw=DB.get('ptw',[]);const i=ptw.findIndex(p=>p.id===id);if(i<0)return;ptw[i].status='active';ptw[i].approvedBy='Admin';DB.set('ptw',ptw);renderPTW();alert('✅ อนุมัติ PTW สำเร็จ');}
+function closePTW(id){const ptw=DB.get('ptw',[]);const i=ptw.findIndex(p=>p.id===id);if(i<0)return;ptw[i].status='closed';DB.set('ptw',ptw);renderPTW();}
+
+// ════ PARKING ════
+function renderParking(){
+  const pk=DB.get('parking',[]);
+  const free=pk.filter(p=>p.status==='free').length;
+  const used=pk.filter(p=>p.status==='used').length;
+  document.getElementById('pk-free').textContent=free;
+  document.getElementById('pk-used').textContent=used;
+  document.getElementById('pk-total').textContent=pk.length;
+  document.getElementById('pk-rev').textContent=fmtCurr(pk.reduce((s,p)=>s+(p.fee||0),0));
+  const grid=document.getElementById('park-grid');
+  if(grid) grid.innerHTML=pk.map(p=>`<div class="park-slot ${p.status==='used'?'used':p.type==='VIP'?'vip':'free'}" title="${p.slot}${p.plate?' — '+p.plate:''}" onclick="toggleParking('${p.id}')">${p.slot.split('-')[1]||p.slot}</div>`).join('');
+  document.getElementById('park-tbody').innerHTML=pk.slice(0,15).map(p=>`<tr>
+    <td class="fw-6">${p.slot}</td><td>${p.zone}</td>
+    <td><span class="badge ${p.type==='VIP'?'bg-purple':p.type==='Reserved'?'bg-blue':'bg-gray'}">${p.type}</span></td>
+    <td class="ff-m">${p.plate||'—'}</td><td style="font-size:11px">${p.entry||'—'}</td>
+    <td style="font-size:11px">${p.exit||'—'}</td><td class="ff-m">${p.fee?fmtCurr(p.fee):'—'}</td>
+    <td><span class="badge ${p.status==='free'?'bg-green':'bg-red'}">${p.status==='free'?'✅ ว่าง':'🚗 มีรถ'}</span></td>
+    <td>${p.status==='used'?`<button class="btn btn-secondary btn-sm" onclick="checkoutPark('${p.id}')">🚗 ออก</button>`:`<button class="btn btn-primary btn-sm" onclick="checkinPark('${p.id}')">➕ เข้า</button>`}</td>
+  </tr>`).join('');
+}
+function toggleParking(id){const pk=DB.get('parking',[]);const p=pk.find(x=>x.id===id);if(!p)return;if(p.status==='free')checkinPark(id);else checkoutPark(id);}
+function checkinPark(id){const pk=DB.get('parking',[]);const i=pk.findIndex(p=>p.id===id);if(i<0)return;const plate=prompt('ทะเบียนรถ:');if(!plate)return;pk[i].status='used';pk[i].plate=plate;pk[i].entry=new Date().toLocaleTimeString('th-TH');pk[i].fee=0;DB.set('parking',pk);renderParking();}
+function checkoutPark(id){const pk=DB.get('parking',[]);const i=pk.findIndex(p=>p.id===id);if(i<0)return;const hrs=Math.max(1,Math.round(Math.random()*5+1));const fee=hrs*20;pk[i].status='free';pk[i].exit=new Date().toLocaleTimeString('th-TH');pk[i].fee=fee;pk[i].plate='';DB.set('parking',pk);renderParking();alert('✅ ค่าบริการ: '+fmtCurr(fee));}
+function refreshParking(){renderParking();}
+
+// ════ TRAINING ════
+function renderTraining(){
+  const tr=DB.get('training',[]);
+  const done=tr.filter(t=>t.status==='done');
+  document.getElementById('tr-total').textContent=tr.length;
+  document.getElementById('tr-done').textContent=done.length;
+  document.getElementById('tr-pax').textContent=tr.reduce((s,t)=>s+(parseInt(t.pax)||0),0);
+  document.getElementById('tr-hrs').textContent=(done.length?done.reduce((s,t)=>s+(parseInt(t.hrs)||0),0)/done.length:0).toFixed(0)+'h';
+  const strColor={Facility:'bg-orange',Energy:'bg-green',Security:'bg-red',Academy:'bg-purple'};
+  document.getElementById('tr-tbody').innerHTML=tr.map(t=>`<tr>
+    <td><span class="tag">${t.id}</span></td>
+    <td class="fw-6" style="color:var(--text)">${t.name}</td>
+    <td><span class="badge ${strColor[t.strategy]||'bg-gray'}">${t.strategy}</span></td>
+    <td style="font-size:11px">${fmtDate(t.date)}</td>
+    <td style="font-size:11px">${t.inst||'—'}</td>
+    <td class="ff-m">${t.pax||0}</td><td class="ff-m">${t.hrs||0}h</td>
+    <td><span class="badge ${t.status==='done'?'bg-green':'bg-yellow'}">${t.status==='done'?'✅ Done':'⏳ Upcoming'}</span></td>
+    <td><div class="flex gap-8">
+      ${t.status!=='done'?`<button class="btn btn-success btn-sm" onclick="doneTraining('${t.id}')">✅</button>`:''}
+      <button class="btn btn-danger btn-sm" onclick="deleteTr('${t.id}')">🗑</button>
+    </div></td>
+  </tr>`).join('');
+}
+function saveTraining(){
+  const tr=DB.get('training',[]);
+  const t={id:genId('CM-TR'),name:document.getElementById('tr-name').value,strategy:document.getElementById('tr-str').value,date:document.getElementById('tr-date').value,inst:document.getElementById('tr-inst').value,pax:document.getElementById('tr-pax').value,hrs:document.getElementById('tr-hrs').value,status:'planned'};
+  if(!t.name){alert('กรุณากรอกชื่อหลักสูตร');return;}
+  tr.push(t);DB.set('training',tr);closeModal('addTrainModal');renderTraining();alert('✅ เพิ่มหลักสูตรสำเร็จ');
+}
+function doneTraining(id){const tr=DB.get('training',[]);const i=tr.findIndex(t=>t.id===id);if(i<0)return;tr[i].status='done';DB.set('training',tr);renderTraining();}
+function deleteTr(id){if(!confirm('ลบหลักสูตร?'))return;DB.set('training',DB.get('training',[]).filter(t=>t.id!==id));renderTraining();}
+
+// ════ COMPETENCY ════
+function renderCompetency(){
+  const comp=DB.get('competency',[]);
+  const stars=n=>('★'.repeat(Math.round(n||0))+'☆'.repeat(5-Math.round(n||0)));
+  document.getElementById('comp-tbody').innerHTML=comp.map(c=>{
+    const avg=((c.elec+c.mech+c.bas+c.safety+c.esg+c.facility)/6).toFixed(1);
+    return `<tr>
+      <td class="fw-6">${c.name}</td><td><span class="badge bg-blue">${c.dept}</span></td>
+      <td title="${c.elec}/5">${stars(c.elec)}</td><td title="${c.mech}/5">${stars(c.mech)}</td>
+      <td title="${c.bas}/5">${stars(c.bas)}</td><td title="${c.safety}/5">${stars(c.safety)}</td>
+      <td title="${c.esg}/5">${stars(c.esg)}</td><td title="${c.facility}/5">${stars(c.facility)}</td>
+      <td class="ff-m fw-7 t-teal">${avg}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteComp('${c.id}')">🗑</button></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--text3)">ยังไม่มีข้อมูล</td></tr>';
+}
+function deleteComp(id){if(!confirm('ลบข้อมูล?'))return;DB.set('competency',DB.get('competency',[]).filter(c=>c.id!==id));renderCompetency();}
+
+// ════ CERTS ════
+function renderCert(){
+  const certs=DB.get('certs',[]);
+  const today=new Date();const soon=new Date(Date.now()+60*86400000);
+  document.getElementById('cert-total').textContent=certs.length;
+  document.getElementById('cert-valid').textContent=certs.filter(c=>new Date(c.expires)>today&&new Date(c.expires)>soon).length;
+  document.getElementById('cert-soon').textContent=certs.filter(c=>new Date(c.expires)>today&&new Date(c.expires)<=soon).length;
+  document.getElementById('cert-exp').textContent=certs.filter(c=>new Date(c.expires)<=today).length;
+  document.getElementById('cert-tbody').innerHTML=certs.map(c=>{
+    const exp=new Date(c.expires);const isExp=exp<today;const isSoon=!isExp&&exp<soon;
+    return `<tr>
+      <td class="fw-6">${c.person}</td>
+      <td style="font-size:11px">${c.cert}</td>
+      <td style="font-size:11px">${c.org}</td>
+      <td style="font-size:11px">${fmtDate(c.issued)}</td>
+      <td style="font-size:11px;color:${isExp?'var(--red)':isSoon?'var(--yellow)':'var(--text2)'}">${fmtDate(c.expires)}</td>
+      <td><span class="badge ${isExp?'bg-red':isSoon?'bg-yellow':'bg-green'}">${isExp?'⏰ หมด':isSoon?'⚠ ใกล้หมด':'✅ Valid'}</span></td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteCert('${c.id}')">🗑</button></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text3)">ยังไม่มีข้อมูล</td></tr>';
+}
+function deleteCert(id){if(!confirm('ลบใบรับรอง?'))return;DB.set('certs',DB.get('certs',[]).filter(c=>c.id!==id));renderCert();}
+
+// ════ TENANT ════
+function renderTenant(){
+  const tenants=DB.get('tenants',[]);
+  const active=tenants.filter(t=>t.status==='active');
+  document.getElementById('ten-total').textContent=tenants.length;
+  document.getElementById('ten-active').textContent=active.length;
+  document.getElementById('ten-rev').textContent=fmtCurr(active.reduce((s,t)=>s+(parseFloat(t.rent)||0),0));
+  document.getElementById('ten-area').textContent=active.reduce((s,t)=>s+(parseFloat(t.area)||0),0).toLocaleString('th-TH');
+  const grid=document.getElementById('tenant-cards');
+  if(grid) grid.innerHTML=tenants.map(t=>`<div class="tenant-card">
+    <div class="flex jb fc mb-8">
+      <div class="fw-6" style="color:var(--text)">${t.name}</div>
+      <span class="badge ${t.status==='active'?'bg-green':'bg-gray'}">${t.status}</span>
+    </div>
+    <div class="metric-row"><span class="t-muted" style="font-size:11px">ประเภท</span><span class="badge bg-blue" style="font-size:10px">${t.type}</span></div>
+    <div class="metric-row"><span class="t-muted" style="font-size:11px">Zone</span><span style="font-size:11px">${t.zone}</span></div>
+    <div class="metric-row"><span class="t-muted" style="font-size:11px">พื้นที่</span><span class="fw-6">${(t.area||0).toLocaleString('th-TH')} m²</span></div>
+    <div class="metric-row"><span class="t-muted" style="font-size:11px">ค่าเช่า/เดือน</span><span class="fw-6 t-teal">${fmtCurr(t.rent)}</span></div>
+    <div class="metric-row"><span class="t-muted" style="font-size:11px">สัญญาถึง</span><span style="font-size:11px">${fmtDate(t.end)}</span></div>
+    <div class="metric-row"><span class="t-muted" style="font-size:11px">ผู้ติดต่อ</span><span style="font-size:11px">${t.contact||'—'} ${t.phone||''}</span></div>
+    <button class="btn btn-danger btn-sm mt-8" onclick="deleteTenant('${t.id}')">🗑 ลบ</button>
+  </div>`).join('')||'<div style="padding:40px;text-align:center;color:var(--text3)">ยังไม่มีผู้เช่า</div>';
+}
+function saveTenant(){
+  const tenants=DB.get('tenants',[]);
+  const t={id:genId('TEN'),name:document.getElementById('ten-name').value,type:document.getElementById('ten-type').value,area:document.getElementById('ten-area').value,rent:document.getElementById('ten-rent').value,start:document.getElementById('ten-start').value,end:document.getElementById('ten-end').value,contact:document.getElementById('ten-contact').value,phone:document.getElementById('ten-phone').value,zone:document.getElementById('ten-zone').value,status:'active'};
+  if(!t.name){alert('กรุณากรอกชื่อผู้เช่า');return;}
+  tenants.push(t);DB.set('tenants',tenants);closeModal('addTenantModal');renderTenant();syncToSheets('Tenants',t);alert('✅ เพิ่มผู้เช่าสำเร็จ');
+}
+function deleteTenant(id){if(!confirm('ลบผู้เช่า?'))return;DB.set('tenants',DB.get('tenants',[]).filter(t=>t.id!==id));renderTenant();}
+
+// ════ RETAIL ════
+function renderRetail(){
+  const ret=DB.get('retail',[]);
+  const occ=ret.filter(r=>r.status==='occupied').length;
+  document.getElementById('ret-total').textContent=ret.length;
+  document.getElementById('ret-occ').textContent=occ;
+  document.getElementById('ret-avail').textContent=ret.filter(r=>r.status==='available').length;
+  document.getElementById('ret-rate').textContent=ret.length?Math.round(occ/ret.length*100)+'%':'0%';
+  const tenants=DB.get('tenants',[]);const tenMap={};tenants.forEach(t=>tenMap[t.id]=t.name);
+  document.getElementById('retail-tbody').innerHTML=ret.map(r=>`<tr>
+    <td><span class="tag">${r.id}</span></td><td class="fw-6" style="color:var(--text)">${r.name}</td>
+    <td>${r.zone}</td><td>ชั้น ${r.floor}</td>
+    <td class="ff-m">${(r.area||0).toLocaleString('th-TH')}</td>
+    <td style="font-size:11px">${r.tenant?tenMap[r.tenant]||r.tenant:'ว่าง'}</td>
+    <td class="ff-m">${r.rent?fmtCurr(r.rent):'—'}</td>
+    <td style="font-size:11px">${fmtDate(r.leaseEnd)||'—'}</td>
+    <td><span class="badge ${r.status==='occupied'?'bg-green':'bg-yellow'}">${r.status==='occupied'?'✅ มีผู้เช่า':'🟡 ว่าง'}</span></td>
+    <td><button class="btn btn-danger btn-sm" onclick="deleteRetail('${r.id}')">🗑</button></td>
+  </tr>`).join('')||'<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--text3)">ยังไม่มีข้อมูล</td></tr>';
+}
+function deleteRetail(id){if(!confirm('ลบพื้นที่?'))return;DB.set('retail',DB.get('retail',[]).filter(r=>r.id!==id));renderRetail();}
+
+// ════ EVENT ════
+function renderEvent(){
+  const events=DB.get('events',[]);
+  const conf=events.filter(e=>e.status==='confirmed');
+  document.getElementById('ev-total').textContent=events.length;
+  document.getElementById('ev-conf').textContent=conf.length;
+  document.getElementById('ev-pend').textContent=events.filter(e=>e.status==='pending').length;
+  document.getElementById('ev-rev').textContent=fmtCurr(conf.reduce((s,e)=>s+(parseFloat(e.fee)||0),0));
+  document.getElementById('event-tbody').innerHTML=events.map(e=>`<tr>
+    <td><span class="tag">${e.id}</span></td>
+    <td class="fw-6" style="color:var(--text)">${e.name}</td>
+    <td><span class="badge bg-blue">${e.hall}</span></td>
+    <td style="font-size:11px">${fmtDate(e.date)}</td>
+    <td class="ff-m" style="font-size:11px">${e.timeS}–${e.timeE}</td>
+    <td style="font-size:11px">${e.by}</td>
+    <td class="ff-m">${(e.pax||0).toLocaleString()}</td>
+    <td class="ff-m">${fmtCurr(e.fee)}</td>
+    <td><span class="badge ${e.status==='confirmed'?'bg-green':'bg-yellow'}">${e.status}</span></td>
+    <td><div class="flex gap-8">
+      ${e.status==='pending'?`<button class="btn btn-success btn-sm" onclick="confirmEvent('${e.id}')">✅</button>`:''}
+      <button class="btn btn-danger btn-sm" onclick="deleteEvent('${e.id}')">🗑</button>
+    </div></td>
+  </tr>`).join('')||'<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--text3)">ยังไม่มี Event</td></tr>';
+}
+function confirmEvent(id){const events=DB.get('events',[]);const i=events.findIndex(e=>e.id===id);if(i<0)return;events[i].status='confirmed';DB.set('events',events);renderEvent();}
+function deleteEvent(id){if(!confirm('ลบ Event?'))return;DB.set('events',DB.get('events',[]).filter(e=>e.id!==id));renderEvent();}
+
+// ════ AI ════
+function renderAI(){
+  document.getElementById('ai-ctx-assets').textContent=DB.get('assets',[]).length;
+  document.getElementById('ai-ctx-wr').textContent=DB.get('wr',[]).length;
+  document.getElementById('ai-ctx-ppm').textContent=DB.get('ppm',[]).length;
+  document.getElementById('ai-ctx-energy').textContent=DB.get('energy',[]).length;
+  const savedKey=localStorage.getItem('sbs_ai_key');
+  if(savedKey) document.getElementById('ai-key-cm').value=savedKey;
+}
+function saveAIKey(){localStorage.setItem('sbs_ai_key',document.getElementById('ai-key-cm').value);alert('✅ บันทึก AI Key แล้ว');}
+function askAI(prompt){document.getElementById('ai-input').value=prompt;sendAI();}
+async function sendAI(){
+  const msg=document.getElementById('ai-input').value.trim();
+  if(!msg)return;
+  const key=localStorage.getItem('sbs_ai_key');
+  const chat=document.getElementById('ai-chat');
+  chat.innerHTML+=`<div style="color:var(--text);margin-bottom:8px"><span style="color:var(--orange)">👤 คุณ:</span> ${msg}</div>`;
+  if(!key){chat.innerHTML+='<div style="color:var(--red);margin-bottom:8px">❌ กรุณาใส่ Anthropic API Key ใน Configuration ก่อน</div>';return;}
+  chat.innerHTML+='<div style="color:var(--text3);margin-bottom:8px">🤖 AI กำลังวิเคราะห์...</div>';
+  const ctx=`Commercial Module Data: Assets=${DB.get('assets',[]).length}, OpenWR=${DB.get('wr',[]).filter(w=>w.status!=='closed').length}, PPM=${DB.get('ppm',[]).length}, Tenants=${DB.get('tenants',[]).length}, Building=BHIRAJBURI`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,messages:[{role:'user',content:`Context: ${ctx}\n\nคำถาม: ${msg}`}]})});
+    const d=await r.json();
+    const reply=d.content?.[0]?.text||'ไม่สามารถตอบได้';
+    chat.innerHTML+=`<div style="color:var(--text);margin-bottom:12px"><span style="color:var(--teal)">🤖 AI:</span> ${reply.replace(/\n/g,'<br>')}</div>`;
+  }catch(e){chat.innerHTML+=`<div style="color:var(--red);margin-bottom:8px">❌ Error: ${e.message}</div>`;}
+  chat.scrollTop=chat.scrollHeight;
+  document.getElementById('ai-input').value='';
+}
+
+// ════ REPORTS ════
+function generateReport(){const data={module:'Commercial',building:currentBuilding,assets:DB.get('assets',[]).length,wr:DB.get('wr',[]).length,ppm:DB.get('ppm',[]).length,tenants:DB.get('tenants',[]).length,date:new Date().toLocaleDateString('th-TH')};exportXLS([data],'Summary_Report');alert('✅ Export Report สำเร็จ');}
+function exportESG(){exportXLS([{Environmental:'Energy Intensity 142 kWh/m²',Social:'0 LTI, 4.2/5 Satisfaction',Governance:'87% Compliance'}],'ESG_Report');}
+
+// ════ SYNC TO SHEETS ════
+async function syncToSheets(sheet,data){
+  const url=localStorage.getItem('sbs_gas_url');
+  if(!url)return;
+  try{await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'insert',sheet,data})});}catch(e){}
+}
+
+// ════ INIT ════
+seedData();
+refreshDash();
+</script>
+</body>
+</html>

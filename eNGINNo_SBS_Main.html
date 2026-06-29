@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PSD ● eNGINNo SMART BUILDING SUSTAINABLE</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0D1117;--bg2:#161B22;--bg3:#1C2333;--bg4:#21262D;
+  --border:#30363D;--border2:#3D444D;
+  --orange:#F97316;--orange2:#EA6C0A;--orange-dim:rgba(249,115,22,0.12);
+  --green:#22C55E;--green-dim:rgba(34,197,94,0.12);
+  --yellow:#EAB308;--yellow-dim:rgba(234,179,8,0.12);
+  --red:#EF4444;--red-dim:rgba(239,68,68,0.12);
+  --blue:#3B82F6;--blue-dim:rgba(59,130,246,0.12);
+  --purple:#A855F7;--purple-dim:rgba(168,85,247,0.12);
+  --teal:#14B8A6;--teal-dim:rgba(20,184,166,0.12);
+  --cyan:#06B6D4;--cyan-dim:rgba(6,182,212,0.12);
+  --text:#E6EDF3;--text2:#8B949E;--text3:#6E7681;
+  --sidebar-w:240px;--header-h:56px;
+  --font:'Sarabun',sans-serif;--font-d:'Rajdhani',sans-serif;--font-m:'JetBrains Mono',monospace;
+  --r:8px;--r-lg:12px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ── LOGIN ── */
+#login-screen{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px}
+#login-screen.hidden{display:none}
+.login-wrap{width:100%;max-width:460px}
+.login-logo{text-align:center;margin-bottom:28px}
+.brand-dot{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-d);font-size:13px;font-weight:700;letter-spacing:3px;color:var(--orange);text-transform:uppercase;margin-bottom:8px}
+.brand-hex{width:28px;height:28px;background:var(--orange-dim);border:1px solid var(--orange);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.login-title{font-family:var(--font-d);font-size:28px;font-weight:700;color:var(--text);line-height:1.15}
+.login-title span{color:var(--teal)}
+.login-sub{font-size:12px;color:var(--text3);margin-top:6px;letter-spacing:.5px}
+.login-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-lg);padding:28px 32px}
+.auth-tabs{display:flex;gap:2px;background:var(--bg3);border-radius:var(--r);padding:3px;margin-bottom:22px}
+.auth-tab{flex:1;text-align:center;padding:8px;border-radius:6px;font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s;font-weight:500}
+.auth-tab.active{background:var(--bg2);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px;letter-spacing:.5px;text-transform:uppercase}
+.form-control{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;font-size:13px;font-family:var(--font);color:var(--text);outline:none;transition:border .15s}
+.form-control:focus{border-color:var(--orange)}
+select.form-control option{background:var(--bg3)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:13px;font-family:var(--font);cursor:pointer;border:1px solid;transition:all .15s;font-weight:500}
+.btn-primary{background:var(--orange);border-color:var(--orange);color:#fff}.btn-primary:hover{background:var(--orange2)}
+.btn-secondary{background:transparent;border-color:var(--border2);color:var(--text2)}.btn-secondary:hover{background:var(--bg3);color:var(--text)}
+.btn-success{background:transparent;border-color:var(--green);color:var(--green)}.btn-success:hover{background:var(--green-dim)}
+.btn-teal{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn-sm{padding:5px 10px;font-size:12px}
+.login-err{background:var(--red-dim);border:1px solid rgba(239,68,68,.3);color:var(--red);font-size:13px;padding:10px 14px;border-radius:var(--r);margin-bottom:14px;display:none}
+.login-err.show{display:block}
+.login-ok{background:var(--green-dim);border:1px solid rgba(34,197,94,.3);color:var(--green);font-size:13px;padding:10px 14px;border-radius:var(--r);margin-bottom:14px;display:none}
+.login-ok.show{display:block}
+.login-hint{text-align:center;margin-top:12px;font-size:11px;color:var(--text3)}
+.login-version{text-align:center;margin-top:16px;font-size:11px;color:var(--text3)}
+.cdkey-section{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:14px}
+.cdkey-label{font-size:10px;color:var(--orange);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.cdkey-input{display:flex;gap:8px}
+.cdkey-status{font-size:11px;margin-top:6px;display:none}
+.cdkey-status.ok{color:var(--green);display:block}
+.cdkey-status.err{color:var(--red);display:block}
+
+/* ── SIDEBAR ── */
+#sidebar{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;overflow-y:auto}
+.sidebar-header{padding:14px 16px 12px;border-bottom:1px solid var(--border)}
+.sidebar-logo{font-family:var(--font-d);font-size:10px;font-weight:700;letter-spacing:2px;color:var(--orange);text-transform:uppercase;margin-bottom:2px}
+.sidebar-title{font-family:var(--font-d);font-size:13px;font-weight:700;color:var(--text);line-height:1.2}
+.sidebar-title span{color:var(--teal)}
+.sidebar-sub{font-size:10px;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.sidebar-user{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg3)}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--orange-dim);border:1px solid rgba(249,115,22,.3);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--orange);flex-shrink:0}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-role{font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-section{padding:10px 12px 4px;font-size:10px;font-weight:600;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--r);margin:1px 8px;cursor:pointer;font-size:13px;color:var(--text2);transition:all .15s;border:1px solid transparent}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--orange-dim);color:var(--orange);border-color:rgba(249,115,22,.25)}
+.nav-icon{font-size:14px;flex-shrink:0;width:18px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:600;padding:1px 5px;border-radius:8px;min-width:18px;text-align:center}
+.sidebar-footer{margin-top:auto;padding:12px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
+.logout-btn{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:var(--r);cursor:pointer;font-size:12px;color:var(--red);margin-bottom:6px;transition:all .15s}
+.logout-btn:hover{background:var(--red-dim)}
+
+/* ── MAIN ── */
+#main{margin-left:var(--sidebar-w);min-height:100vh}
+#topbar{position:sticky;top:0;height:var(--header-h);background:rgba(13,17,23,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;z-index:50}
+.topbar-title{font-family:var(--font-d);font-size:18px;font-weight:600;color:var(--text)}
+.topbar-bread{font-size:12px;color:var(--text3)}
+.topbar-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+#content{padding:24px}
+.view{display:none}.view.active{display:block}
+
+/* ── CARDS / KPI ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px}
+.card-sm{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 20px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.orange::before{background:var(--orange)}.kpi.green::before{background:var(--green)}
+.kpi.blue::before{background:var(--blue)}.kpi.teal::before{background:var(--teal)}
+.kpi.yellow::before{background:var(--yellow)}.kpi.red::before{background:var(--red)}
+.kpi.purple::before{background:var(--purple)}.kpi.cyan::before{background:var(--cyan)}
+.kpi-label{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+.kpi-value{font-family:var(--font-d);font-size:28px;font-weight:700;line-height:1}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:4px}
+.kpi-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:26px;opacity:.12}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.section-title{font-family:var(--font-d);font-size:22px;font-weight:700}
+.section-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.flex{display:flex}.flex-center{align-items:center}.gap-8{gap:8px}.gap-12{gap:12px}.gap-16{gap:16px}
+.justify-between{justify-content:space-between}.flex-wrap{flex-wrap:wrap}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mt-20{margin-top:20px}
+.mb-8{margin-bottom:8px}.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}
+.fw-600{font-weight:600}.fw-700{font-weight:700}
+.ff-d{font-family:var(--font-d)}.ff-m{font-family:var(--font-m)}
+.text-orange{color:var(--orange)}.text-green{color:var(--green)}.text-blue{color:var(--blue)}
+.text-teal{color:var(--teal)}.text-yellow{color:var(--yellow)}.text-red{color:var(--red)}
+.text-purple{color:var(--purple)}.text-cyan{color:var(--cyan)}.text-muted{color:var(--text3)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-green{background:var(--green-dim);color:var(--green)}.badge-yellow{background:var(--yellow-dim);color:var(--yellow)}
+.badge-red{background:var(--red-dim);color:var(--red)}.badge-blue{background:var(--blue-dim);color:var(--blue)}
+.badge-orange{background:var(--orange-dim);color:var(--orange)}.badge-teal{background:var(--teal-dim);color:var(--teal)}
+.badge-purple{background:var(--purple-dim);color:var(--purple)}.badge-gray{background:rgba(139,148,158,.12);color:var(--text2)}
+.badge-cyan{background:var(--cyan-dim);color:var(--cyan)}
+.tag{display:inline-block;background:var(--bg4);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;font-family:var(--font-m);color:var(--text2)}
+.metric-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
+.metric-row:last-child{border-bottom:none}
+.chart-wrap{position:relative;height:240px}
+.progress{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.progress-bar{height:100%;border-radius:3px;transition:width .4s}
+.table-wrap{overflow-x:auto;border-radius:var(--r-lg);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--bg3);padding:10px 14px;text-align:left;font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3);color:var(--text)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-lg);padding:24px;width:640px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.modal-lg{width:820px}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.modal-title{font-family:var(--font-d);font-size:18px;font-weight:600}
+.tabs{display:flex;gap:2px;background:var(--bg3);border-radius:var(--r);padding:3px;margin-bottom:20px;flex-wrap:wrap}
+.tab{padding:7px 14px;border-radius:6px;font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s;font-weight:500}
+.tab.active{background:var(--bg2);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+.alert-box{padding:12px 16px;border-radius:var(--r);margin-bottom:10px;font-size:13px;border-left:3px solid}
+.alert-warn{background:var(--yellow-dim);border-color:var(--yellow);color:var(--text)}
+.alert-danger{background:var(--red-dim);border-color:var(--red);color:var(--text)}
+.alert-success{background:var(--green-dim);border-color:var(--green);color:var(--text)}
+.alert-info{background:var(--blue-dim);border-color:var(--blue);color:var(--text)}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+@media(max-width:768px){#sidebar{display:none}#main{margin-left:0}}
+
+/* ── MODULE HUB ── */
+.module-hub-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:24px}
+.module-card{background:var(--bg2);border:2px solid var(--border);border-radius:16px;padding:28px 24px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+.module-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;transition:height .25s}
+.module-card.commercial::before{background:linear-gradient(90deg,var(--orange),var(--yellow))}
+.module-card.office::before{background:linear-gradient(90deg,var(--blue),var(--cyan))}
+.module-card.hotel::before{background:linear-gradient(90deg,var(--purple),var(--teal))}
+.module-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.module-card.commercial:hover{border-color:var(--orange)}
+.module-card.office:hover{border-color:var(--blue)}
+.module-card.hotel:hover{border-color:var(--purple)}
+.module-icon{font-size:48px;margin-bottom:16px;display:block}
+.module-name{font-family:var(--font-d);font-size:20px;font-weight:700;margin-bottom:6px}
+.module-desc{font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:16px}
+.module-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.module-tag{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.module-btn{width:100%;justify-content:center;padding:10px;font-size:14px}
+.module-status{position:absolute;top:16px;right:16px}
+.module-kpi-row{display:flex;gap:16px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.module-kpi{text-align:center;flex:1}
+.module-kpi-val{font-family:var(--font-d);font-size:18px;font-weight:700}
+.module-kpi-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+
+/* ── STRATEGY PILLS (inside module iframe area) ── */
+.strategy-bar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.strategy-pill{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid;transition:all .2s}
+.strategy-pill.facility{border-color:rgba(249,115,22,.3);color:var(--orange);background:var(--orange-dim)}
+.strategy-pill.energy{border-color:rgba(34,197,94,.3);color:var(--green);background:var(--green-dim)}
+.strategy-pill.security{border-color:rgba(239,68,68,.3);color:var(--red);background:var(--red-dim)}
+.strategy-pill.academy{border-color:rgba(168,85,247,.3);color:var(--purple);background:var(--purple-dim)}
+.strategy-pill:hover{filter:brightness(1.2)}
+
+/* ── BUILDING STATUS RINGS ── */
+.ring-status{display:flex;gap:12px;flex-wrap:wrap}
+.ring-item{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:12px}
+.ring-dot{width:10px;height:10px;border-radius:50%}
+.ring-dot.ok{background:var(--green);box-shadow:0 0 6px var(--green)}
+.ring-dot.warn{background:var(--yellow);box-shadow:0 0 6px var(--yellow);animation:blink 1.5s infinite}
+.ring-dot.crit{background:var(--red);box-shadow:0 0 6px var(--red);animation:blink .8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── NOTIFICATION ── */
+.notif-panel{position:fixed;top:56px;right:0;width:340px;height:calc(100vh - 56px);background:var(--bg2);border-left:1px solid var(--border);z-index:150;transform:translateX(100%);transition:transform .3s;overflow-y:auto;padding:16px}
+.notif-panel.open{transform:translateX(0)}
+.notif-item{padding:12px;border-radius:var(--r);margin-bottom:8px;border:1px solid var(--border);cursor:pointer;transition:all .15s}
+.notif-item:hover{background:var(--bg3)}
+.notif-item.unread{border-color:var(--orange);background:var(--orange-dim)}
+.notif-time{font-size:10px;color:var(--text3);margin-top:4px}
+
+/* ── CD KEY BADGE ── */
+.cdkey-badge{background:var(--orange-dim);border:1px solid var(--orange);border-radius:6px;padding:4px 10px;font-size:11px;font-family:var(--font-m);color:var(--orange);display:inline-flex;align-items:center;gap:6px}
+</style>
+</head>
+<body>
+
+<!-- ════════════════ LOGIN SCREEN ════════════════ -->
+<div id="login-screen">
+  <div class="login-wrap">
+    <div class="login-logo">
+      <div class="brand-dot">
+        <div class="brand-hex">⬡</div>
+        PSD ● eNGINNo
+      </div>
+      <div class="login-title">SMART BUILDING<br><span>SUSTAINABLE</span></div>
+      <div class="login-sub">Integrated Smart Building Platform · v1.0 · 2026</div>
+    </div>
+    <div class="login-card">
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">🔐 เข้าสู่ระบบ</div>
+        <div class="auth-tab" id="tab-reg" onclick="switchTab('reg')">📝 ลงทะเบียน</div>
+      </div>
+
+      <!-- LOGIN PANE -->
+      <div id="pane-login">
+        <div class="login-err" id="login-err">Username หรือ Password ไม่ถูกต้อง</div>
+        <div class="form-group"><label class="form-label">Username</label><input class="form-control" id="inp-user" placeholder="ชื่อผู้ใช้" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <div class="form-group"><label class="form-label">Password</label><input class="form-control" id="inp-pass" type="password" placeholder="รหัสผ่าน" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:10px;font-size:14px" onclick="doLogin()">🚀 เข้าสู่ระบบ</button>
+        <div class="login-hint">Admin: <span style="font-family:var(--font-m);color:var(--orange)">sbs_admin / psd@2026</span></div>
+      </div>
+
+      <!-- REGISTER PANE -->
+      <div id="pane-reg" style="display:none">
+        <div class="login-err" id="reg-err"></div>
+        <div class="login-ok" id="reg-ok">✅ ส่งคำขอสำเร็จ! รอ Admin อนุมัติ</div>
+
+        <div class="cdkey-section">
+          <div class="cdkey-label">🔑 CD Key / License Key</div>
+          <div class="cdkey-input">
+            <input class="form-control ff-m" id="inp-cdkey" placeholder="SBS-XXXX-XXXX-XXXX" style="letter-spacing:1px">
+            <button class="btn btn-secondary btn-sm" onclick="verifyCDKey()">🔍 ตรวจสอบ</button>
+          </div>
+          <div class="cdkey-status" id="cdkey-status"></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">ชื่อ-นามสกุล *</label><input class="form-control" id="reg-name" placeholder="ชื่อ นามสกุล"></div>
+          <div class="form-group"><label class="form-label">ตำแหน่ง *</label><input class="form-control" id="reg-pos" placeholder="Position"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">อีเมล *</label><input class="form-control" id="reg-email" type="email" placeholder="email@psd.co.th"></div>
+          <div class="form-group"><label class="form-label">แผนก *</label>
+            <select class="form-control" id="reg-dept">
+              <option value="">-- เลือกแผนก --</option>
+              <option>Engineering</option><option>Maintenance</option><option>Facility</option>
+              <option>Safety</option><option>Energy</option><option>Security</option>
+              <option>HR / Admin</option><option>IT</option><option>Management</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label class="form-label">Business Group / อาคาร *</label>
+          <select class="form-control" id="reg-bg" onchange="updateBuildingSelect()">
+            <option value="">-- เลือก Business Group --</option>
+            <option value="commercial">🏢 Commercial</option>
+            <option value="office">🏗 Office Building</option>
+            <option value="hotel">🏨 Hotel & Service Apartment</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">อาคาร / Building *</label>
+          <select class="form-control" id="reg-building"><option value="">-- เลือก Business Group ก่อน --</option></select>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Username *</label><input class="form-control" id="reg-user" placeholder="ตั้ง username"></div>
+          <div class="form-group"><label class="form-label">Password *</label><input class="form-control" id="reg-pass" type="password" placeholder="อย่างน้อย 6 ตัว"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Role ที่ขอ</label>
+          <select class="form-control" id="reg-role">
+            <option value="viewer">Viewer — ดูข้อมูล</option>
+            <option value="technician">Technician — บันทึกงาน</option>
+            <option value="supervisor">Supervisor — อนุมัติงาน</option>
+            <option value="manager">Manager — จัดการระบบ</option>
+          </select>
+        </div>
+        <button class="btn btn-success" style="width:100%;justify-content:center;padding:10px;font-size:14px" onclick="doRegister()">✅ ส่งคำขอลงทะเบียน</button>
+        <div class="login-hint" style="margin-top:8px;font-size:11px;color:var(--text3)">⚠ CD Key จำเป็นต้องกรอก — ติดต่อ PSD Engineering เพื่อรับ Key</div>
+      </div>
+    </div>
+    <div class="login-version">PSD Engineering Department · eNGINNo Smart Analytics v1.0.0 · 2026</div>
+  </div>
+</div>
+
+<!-- ════════════════ SIDEBAR ════════════════ -->
+<nav id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">PSD ● eNGINNo</div>
+    <div class="sidebar-title">SMART BUILDING<br><span>SUSTAINABLE</span></div>
+    <div class="sidebar-sub">v1.0 — 2026</div>
+  </div>
+  <div class="sidebar-user" id="sidebar-user" style="display:none">
+    <div class="user-avatar" id="user-av">A</div>
+    <div class="user-info">
+      <div class="user-name" id="user-nm">—</div>
+      <div class="user-role" id="user-rl">—</div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">Overview</div>
+  <div class="nav-item active" onclick="showView('dashboard')"><span class="nav-icon">📊</span>Dashboard</div>
+  <div class="nav-item" onclick="showView('hub')"><span class="nav-icon">🏢</span>Module Hub<span class="nav-badge" id="nb-hub">3</span></div>
+
+  <div class="sidebar-section">Smart Building</div>
+  <div class="nav-item" onclick="openModule('commercial')"><span class="nav-icon">🏢</span>Commercial</div>
+  <div class="nav-item" onclick="openModule('office')"><span class="nav-icon">🏗</span>Office Building</div>
+  <div class="nav-item" onclick="openModule('hotel')"><span class="nav-icon">🏨</span>Hotel & Service Apt.</div>
+
+  <div class="sidebar-section">Platform</div>
+  <div class="nav-item" onclick="showView('notifications')"><span class="nav-icon">🔔</span>Notifications<span class="nav-badge" id="nb-notif">0</span></div>
+  <div class="nav-item" onclick="showView('integrations')"><span class="nav-icon">🔌</span>Integrations</div>
+  <div class="nav-item" onclick="showView('deploy')"><span class="nav-icon">☁</span>Free Server Deploy</div>
+
+  <div class="sidebar-section">System</div>
+  <div class="nav-item" id="nav-admin" onclick="showView('admin')" style="display:none"><span class="nav-icon">👥</span>Admin Management<span class="nav-badge" id="nb-admin">0</span></div>
+  <div class="nav-item" id="nav-cdkey" onclick="showView('cdkey')" style="display:none"><span class="nav-icon">🔑</span>CD Key Management</div>
+  <div class="nav-item" onclick="showView('config')"><span class="nav-icon">⚙</span>Configuration</div>
+
+  <div class="sidebar-footer">
+    <div class="logout-btn" onclick="doLogout()">⬡ ออกจากระบบ</div>
+    <div style="color:var(--orange);font-family:var(--font-d);font-size:11px;font-weight:700;margin-bottom:3px">PSD Engineering Dept.</div>
+    <div>eNGINNo Smart Analytics</div>
+    <div style="margin-top:3px">v1.0.0 — 2026</div>
+  </div>
+</nav>
+
+<!-- ════════════════ MAIN ════════════════ -->
+<main id="main">
+  <div id="topbar">
+    <div>
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-bread" id="topbar-bread">PSD eNGINNo SBS › Overview</div>
+    </div>
+    <div class="topbar-actions">
+      <div class="ring-status" id="ring-status-bar">
+        <div class="ring-item"><div class="ring-dot ok" id="ring-facility"></div>Facility</div>
+        <div class="ring-item"><div class="ring-dot ok" id="ring-energy"></div>Energy</div>
+        <div class="ring-item"><div class="ring-dot ok" id="ring-security"></div>Security</div>
+        <div class="ring-item"><div class="ring-dot ok" id="ring-academy"></div>Academy</div>
+      </div>
+      <span id="clock" style="font-family:var(--font-m);font-size:11px;color:var(--text3)"></span>
+      <button class="btn btn-secondary btn-sm" onclick="toggleNotif()">🔔 <span id="notif-count">0</span></button>
+      <button class="btn btn-primary btn-sm" onclick="showView('hub')">🏢 Module Hub</button>
+    </div>
+  </div>
+
+  <div id="content">
+
+    <!-- ── DASHBOARD ── -->
+    <div id="view-dashboard" class="view active">
+      <div class="section-header">
+        <div>
+          <div class="section-title">📊 Platform Overview Dashboard</div>
+          <div class="section-sub">PSD ● eNGINNo Smart Building Sustainable · ภาพรวมทุก Module · 2026</div>
+        </div>
+        <div class="flex gap-8">
+          <span id="cdkey-badge-dash" class="cdkey-badge" style="display:none">🔑 <span id="cdkey-show">—</span></span>
+          <button class="btn btn-secondary btn-sm" onclick="refreshDashboard()">↻ Refresh</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr)">
+        <div class="kpi orange"><div class="kpi-label">Active Modules</div><div class="kpi-value ff-d text-orange" id="kpi-modules">3</div><div class="kpi-sub">Commercial / Office / Hotel</div><div class="kpi-icon">🏢</div></div>
+        <div class="kpi blue"><div class="kpi-label">Total Buildings</div><div class="kpi-value ff-d text-blue" id="kpi-buildings">0</div><div class="kpi-sub">อาคารทั้งหมด</div><div class="kpi-icon">🏗</div></div>
+        <div class="kpi green"><div class="kpi-label">Total Assets</div><div class="kpi-value ff-d text-green" id="kpi-assets">0</div><div class="kpi-sub">อุปกรณ์รวมทุกอาคาร</div><div class="kpi-icon">⚙</div></div>
+        <div class="kpi red"><div class="kpi-label">Open Work Orders</div><div class="kpi-value ff-d text-red" id="kpi-wo">0</div><div class="kpi-sub">งานค้างรวมทุก Module</div><div class="kpi-icon">🔧</div></div>
+        <div class="kpi teal"><div class="kpi-label">Energy Today (kWh)</div><div class="kpi-value ff-d text-teal" id="kpi-energy">0</div><div class="kpi-sub">พลังงานรวมวันนี้</div><div class="kpi-icon">⚡</div></div>
+      </div>
+
+      <!-- Module Status Cards -->
+      <div class="grid-3 mb-16">
+        <div class="card" style="border-color:rgba(249,115,22,.3);cursor:pointer" onclick="openModule('commercial')">
+          <div class="flex justify-between flex-center mb-12">
+            <div><div class="ff-d fw-700" style="font-size:16px;color:var(--orange)">🏢 Commercial</div><div class="text-muted" style="font-size:11px">BHIRAJBURI · Township · BITEC</div></div>
+            <span class="badge badge-green">Active</span>
+          </div>
+          <div class="flex gap-16">
+            <div class="module-kpi"><div class="module-kpi-val text-orange" id="cm-assets">0</div><div class="module-kpi-lbl">Assets</div></div>
+            <div class="module-kpi"><div class="module-kpi-val text-red" id="cm-wo">0</div><div class="module-kpi-lbl">Open WO</div></div>
+            <div class="module-kpi"><div class="module-kpi-val text-green" id="cm-ppm">0</div><div class="module-kpi-lbl">PPM</div></div>
+          </div>
+          <div class="progress mt-12"><div class="progress-bar" style="width:85%;background:var(--orange)"></div></div>
+          <div class="text-muted mt-8" style="font-size:10px">Facility Health: 85%</div>
+        </div>
+        <div class="card" style="border-color:rgba(59,130,246,.3);cursor:pointer" onclick="openModule('office')">
+          <div class="flex justify-between flex-center mb-12">
+            <div><div class="ff-d fw-700" style="font-size:16px;color:var(--blue)">🏗 Office Building</div><div class="text-muted" style="font-size:11px">PSD HQ · Smart Office</div></div>
+            <span class="badge badge-green">Active</span>
+          </div>
+          <div class="flex gap-16">
+            <div class="module-kpi"><div class="module-kpi-val text-blue" id="of-assets">0</div><div class="module-kpi-lbl">Assets</div></div>
+            <div class="module-kpi"><div class="module-kpi-val text-red" id="of-wo">0</div><div class="module-kpi-lbl">Open WO</div></div>
+            <div class="module-kpi"><div class="module-kpi-val text-green" id="of-ppm">0</div><div class="module-kpi-lbl">PPM</div></div>
+          </div>
+          <div class="progress mt-12"><div class="progress-bar" style="width:92%;background:var(--blue)"></div></div>
+          <div class="text-muted mt-8" style="font-size:10px">Facility Health: 92%</div>
+        </div>
+        <div class="card" style="border-color:rgba(168,85,247,.3);cursor:pointer" onclick="openModule('hotel')">
+          <div class="flex justify-between flex-center mb-12">
+            <div><div class="ff-d fw-700" style="font-size:16px;color:var(--purple)">🏨 Hotel & Service Apt.</div><div class="text-muted" style="font-size:11px">Hotel · Serviced Apartment</div></div>
+            <span class="badge badge-green">Active</span>
+          </div>
+          <div class="flex gap-16">
+            <div class="module-kpi"><div class="module-kpi-val text-purple" id="ht-assets">0</div><div class="module-kpi-lbl">Assets</div></div>
+            <div class="module-kpi"><div class="module-kpi-val text-red" id="ht-wo">0</div><div class="module-kpi-lbl">Open WO</div></div>
+            <div class="module-kpi"><div class="module-kpi-val text-green" id="ht-ppm">0</div><div class="module-kpi-lbl">PPM</div></div>
+          </div>
+          <div class="progress mt-12"><div class="progress-bar" style="width:78%;background:var(--purple)"></div></div>
+          <div class="text-muted mt-8" style="font-size:10px">Facility Health: 78%</div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="ff-d fw-600" style="font-size:15px;margin-bottom:12px">⚡ Energy Overview — 7 Days</div>
+          <div class="chart-wrap" style="height:220px"><canvas id="chartEnergy"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ff-d fw-600" style="font-size:15px;margin-bottom:12px">🔧 Work Order Status — All Modules</div>
+          <div class="chart-wrap" style="height:220px"><canvas id="chartWO"></canvas></div>
+        </div>
+      </div>
+
+      <!-- 4-Strategy Summary -->
+      <div class="grid-4 mt-16">
+        <div class="card" style="border-color:var(--orange-dim)">
+          <div style="font-size:24px;margin-bottom:8px">🔧</div>
+          <div class="ff-d fw-700" style="color:var(--orange)">Facility & Maintenance</div>
+          <div class="metric-row mt-8"><span class="text-muted">Open WR</span><span class="fw-600 text-red" id="str-wo">0</span></div>
+          <div class="metric-row"><span class="text-muted">PPM Due</span><span class="fw-600 text-yellow" id="str-ppm">0</span></div>
+          <div class="metric-row"><span class="text-muted">MTTR Avg</span><span class="fw-600 text-teal" id="str-mttr">—h</span></div>
+        </div>
+        <div class="card" style="border-color:var(--green-dim)">
+          <div style="font-size:24px;margin-bottom:8px">🌱</div>
+          <div class="ff-d fw-700" style="color:var(--green)">Energy & Sustainability</div>
+          <div class="metric-row mt-8"><span class="text-muted">kWh Today</span><span class="fw-600 text-teal" id="str-kwh">0</span></div>
+          <div class="metric-row"><span class="text-muted">CO₂ Saved</span><span class="fw-600 text-green" id="str-co2">0 kg</span></div>
+          <div class="metric-row"><span class="text-muted">Solar Gen.</span><span class="fw-600 text-yellow" id="str-solar">0 kWh</span></div>
+        </div>
+        <div class="card" style="border-color:var(--red-dim)">
+          <div style="font-size:24px;margin-bottom:8px">🛡</div>
+          <div class="ff-d fw-700" style="color:var(--red)">Security & Safety</div>
+          <div class="metric-row mt-8"><span class="text-muted">Access Today</span><span class="fw-600 text-blue" id="str-access">0</span></div>
+          <div class="metric-row"><span class="text-muted">Incidents</span><span class="fw-600 text-red" id="str-inc">0</span></div>
+          <div class="metric-row"><span class="text-muted">Safe Days</span><span class="fw-600 text-green" id="str-safe">—</span></div>
+        </div>
+        <div class="card" style="border-color:var(--purple-dim)">
+          <div style="font-size:24px;margin-bottom:8px">🎓</div>
+          <div class="ff-d fw-700" style="color:var(--purple)">Staff Academy</div>
+          <div class="metric-row mt-8"><span class="text-muted">Training Plans</span><span class="fw-600 text-purple" id="str-train">0</span></div>
+          <div class="metric-row"><span class="text-muted">Certified Staff</span><span class="fw-600 text-blue" id="str-cert">0</span></div>
+          <div class="metric-row"><span class="text-muted">Avg Hours/Person</span><span class="fw-600 text-teal" id="str-hrs">—h</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MODULE HUB ── -->
+    <div id="view-hub" class="view">
+      <div class="section-header">
+        <div>
+          <div class="section-title">🏢 Business Module Hub</div>
+          <div class="section-sub">เลือก Module ตาม Business Group — แต่ละ Module มี 4 Strategy ครบถ้วน</div>
+        </div>
+        <div class="flex gap-8">
+          <div class="cdkey-badge">🔑 <span id="cdkey-hub">—</span></div>
+        </div>
+      </div>
+
+      <div class="alert-box alert-info mb-16">
+        💡 <strong>วิธีใช้:</strong> คลิก "เปิด Module" เพื่อเข้าใช้งาน — แต่ละ Module แยกไฟล์ วางไว้ในโฟลเดอร์เดียวกัน<br>
+        ไฟล์: <span class="ff-m" style="color:var(--orange)">eNGINNo_SBS_Commercial.html</span> · <span class="ff-m" style="color:var(--blue)">eNGINNo_SBS_Office.html</span> · <span class="ff-m" style="color:var(--purple)">eNGINNo_SBS_Hotel.html</span>
+      </div>
+
+      <div class="module-hub-grid">
+        <!-- COMMERCIAL -->
+        <div class="module-card commercial">
+          <div class="module-status"><span class="badge badge-green">✅ Active</span></div>
+          <span class="module-icon">🏢</span>
+          <div class="module-name text-orange">Commercial Module</div>
+          <div class="module-desc">บริหารอาคารเชิงพาณิชย์ ศูนย์การค้า ตลาด พื้นที่ให้เช่า Event Hall และที่จอดรถ<br>รองรับหลายอาคารในกลุ่ม Commercial</div>
+          <div class="module-tags">
+            <span class="module-tag" style="background:var(--orange-dim);color:var(--orange)">🏬 Retail Space</span>
+            <span class="module-tag" style="background:var(--blue-dim);color:var(--blue)">👥 Tenant Mgmt</span>
+            <span class="module-tag" style="background:var(--green-dim);color:var(--green)">🚗 Parking Revenue</span>
+            <span class="module-tag" style="background:var(--purple-dim);color:var(--purple)">🎪 Event Hall</span>
+          </div>
+          <div class="strategy-bar">
+            <span class="strategy-pill facility">🔧 Facility</span>
+            <span class="strategy-pill energy">🌱 Energy</span>
+            <span class="strategy-pill security">🛡 Security</span>
+            <span class="strategy-pill academy">🎓 Academy</span>
+          </div>
+          <div class="module-kpi-row">
+            <div class="module-kpi"><div class="module-kpi-val text-orange" id="hub-cm-assets">0</div><div class="module-kpi-lbl">Assets</div></div>
+            <div class="module-kpi"><div class="module-kpi-val text-red" id="hub-cm-wo">0</div><div class="module-kpi-lbl">Open WO</div></div>
+            <div class="module-kpi"><div class="module-kpi-val text-teal" id="hub-cm-energy">0</div><div class="module-kpi-lbl">kWh/d</div></div>
+          </div>
+          <button class="btn btn-primary module-btn mt-16" onclick="openModule('commercial')">🚀 เปิด Commercial Module</button>
+        </div>
+
+        <!-- OFFICE -->
+        <div class="module-card office">
+          <div class="module-status"><span class="badge badge-green">✅ Active</span></div>
+          <span class="module-icon">🏗</span>
+          <div class="module-name text-blue">Office Building Module</div>
+          <div class="module-desc">บริหารอาคารสำนักงาน Smart Office Hot Desk Meeting Room Booking ระบบ Access Control และ BMS</div>
+          <div class="module-tags">
+            <span class="module-tag" style="background:var(--blue-dim);color:var(--blue)">🖥 Smart Office</span>
+            <span class="module-tag" style="background:var(--cyan-dim);color:var(--cyan)">📅 Room Booking</span>
+            <span class="module-tag" style="background:var(--green-dim);color:var(--green)">🔌 BMS/BAS</span>
+            <span class="module-tag" style="background:var(--orange-dim);color:var(--orange)">🪑 Hot Desk</span>
+          </div>
+          <div class="strategy-bar">
+            <span class="strategy-pill facility">🔧 Facility</span>
+            <span class="strategy-pill energy">🌱 Energy</span>
+            <span class="strategy-pill security">🛡 Security</span>
+            <span class="strategy-pill academy">🎓 Academy</span>
+          </div>
+          <div class="module-kpi-row">
+            <div class="module-kpi"><div class="module-kpi-val text-blue" id="hub-of-assets">0</div><div class="module-kpi-lbl">Assets</div></div>
+            <div class="module-kpi"><div class="module-kpi-val text-red" id="hub-of-wo">0</div><div class="module-kpi-lbl">Open WO</div></div>
+            <div class="module-kpi"><div class="module-kpi-val text-teal" id="hub-of-energy">0</div><div class="module-kpi-lbl">kWh/d</div></div>
+          </div>
+          <button class="btn btn-teal module-btn mt-16" onclick="openModule('office')">🚀 เปิด Office Building Module</button>
+        </div>
+
+        <!-- HOTEL -->
+        <div class="module-card hotel">
+          <div class="module-status"><span class="badge badge-green">✅ Active</span></div>
+          <span class="module-icon">🏨</span>
+          <div class="module-name text-purple">Hotel & Service Apt.</div>
+          <div class="module-desc">บริหารโรงแรมและ Serviced Apartment Room Status Housekeeping Guest Request F&B Facility และ Revenue</div>
+          <div class="module-tags">
+            <span class="module-tag" style="background:var(--purple-dim);color:var(--purple)">🛏 Room Status</span>
+            <span class="module-tag" style="background:var(--teal-dim);color:var(--teal)">🧹 Housekeeping</span>
+            <span class="module-tag" style="background:var(--yellow-dim);color:var(--yellow)">🍽 F&B</span>
+            <span class="module-tag" style="background:var(--green-dim);color:var(--green)">💰 Revenue</span>
+          </div>
+          <div class="strategy-bar">
+            <span class="strategy-pill facility">🔧 Facility</span>
+            <span class="strategy-pill energy">🌱 Energy</span>
+            <span class="strategy-pill security">🛡 Security</span>
+            <span class="strategy-pill academy">🎓 Academy</span>
+          </div>
+          <div class="module-kpi-row">
+            <div class="module-kpi"><div class="module-kpi-val text-purple" id="hub-ht-assets">0</div><div class="module-kpi-lbl">Assets</div></div>
+            <div class="module-kpi"><div class="module-kpi-val text-red" id="hub-ht-wo">0</div><div class="module-kpi-lbl">Open WO</div></div>
+            <div class="module-kpi"><div class="module-kpi-val text-teal" id="hub-ht-energy">0</div><div class="module-kpi-lbl">kWh/d</div></div>
+          </div>
+          <button class="btn module-btn mt-16" style="background:var(--purple);border-color:var(--purple);color:#fff" onclick="openModule('hotel')">🚀 เปิด Hotel & Service Apt. Module</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── NOTIFICATIONS ── -->
+    <div id="view-notifications" class="view">
+      <div class="section-header"><div><div class="section-title">🔔 Notification Center</div><div class="section-sub">แจ้งเตือนจากทุก Module · WO Critical · PPM Due · Energy Alert</div></div><div class="flex gap-8"><button class="btn btn-secondary btn-sm" onclick="clearNotifs()">🗑 Clear All</button></div></div>
+      <div id="notif-list-main"></div>
+    </div>
+
+    <!-- ── INTEGRATIONS ── -->
+    <div id="view-integrations" class="view">
+      <div class="section-header"><div><div class="section-title">🔌 Integrations</div><div class="section-sub">IoT · BAS/BMS · Line OA · Google Workspace · AI Analytics</div></div></div>
+      <div class="grid-2">
+        <div class="card"><div class="ff-d fw-700" style="font-size:16px;margin-bottom:16px">🤖 AI Analytics (Claude API)</div>
+          <div class="alert-box alert-info">Claude API เตรียมไว้แล้ว — ใส่ API Key ใน Configuration เพื่อเปิดใช้งาน</div>
+          <div class="form-group mt-12"><label class="form-label">Anthropic API Key</label><input class="form-control" id="ai-key" type="password" placeholder="sk-ant-..."></div>
+          <button class="btn btn-primary btn-sm" onclick="saveAIKey()">💾 Save Key</button>
+          <div class="text-muted mt-8" style="font-size:11px">Key เก็บใน localStorage เท่านั้น — ปลอดภัยบน Local</div>
+        </div>
+        <div class="card"><div class="ff-d fw-700" style="font-size:16px;margin-bottom:16px">📲 Line OA Notify</div>
+          <div class="form-group"><label class="form-label">Channel Access Token</label><input class="form-control" id="line-token" placeholder="Line Token"></div>
+          <div class="form-group"><label class="form-label">Group ID</label><input class="form-control" id="line-group" placeholder="Line Group ID"></div>
+          <button class="btn btn-success btn-sm" onclick="saveLineConfig()">💾 Save</button>
+        </div>
+        <div class="card"><div class="ff-d fw-700" style="font-size:16px;margin-bottom:16px">📊 Google Apps Script (DB)</div>
+          <div class="form-group"><label class="form-label">Apps Script Web App URL</label><input class="form-control ff-m" id="gas-url" placeholder="https://script.google.com/macros/s/.../exec" style="font-size:11px"></div>
+          <div class="form-group"><label class="form-label">Spreadsheet ID</label><input class="form-control ff-m" id="gas-sheetid" placeholder="Google Spreadsheet ID"></div>
+          <div class="flex gap-8"><button class="btn btn-primary btn-sm" onclick="saveGASConfig()">💾 Save</button><button class="btn btn-success btn-sm" onclick="testGAS()">🔌 Test</button></div>
+        </div>
+        <div class="card"><div class="ff-d fw-700" style="font-size:16px;margin-bottom:16px">📡 IoT & BAS/BMS Stub</div>
+          <div class="form-group"><label class="form-label">MQTT Broker URL</label><input class="form-control" id="mqtt-url" placeholder="mqtt://broker:1883"></div>
+          <div class="form-group"><label class="form-label">BAS API Endpoint</label><input class="form-control" id="bas-url" placeholder="http://bms-server/api"></div>
+          <button class="btn btn-secondary btn-sm" onclick="saveIoTConfig()">💾 Save Stub</button>
+          <div class="text-muted mt-8" style="font-size:11px">🔌 Stub — เชื่อมจริงผ่าน Integrations อัปเดตในอนาคต</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DEPLOY ── -->
+    <div id="view-deploy" class="view">
+      <div class="section-header"><div><div class="section-title">☁ Free Server Deploy</div><div class="section-sub">วิธีขึ้น Web Server ฟรี — ให้ทุกเครื่องเข้าถึงได้</div></div></div>
+      <div class="grid-3">
+        <div class="card" style="border-color:rgba(34,197,94,.3)">
+          <div style="font-size:32px;margin-bottom:12px">🐱</div>
+          <div class="ff-d fw-700" style="font-size:16px;color:var(--green);margin-bottom:8px">GitHub Pages</div>
+          <div class="text-muted" style="font-size:12px;line-height:1.7;margin-bottom:16px">ฟรี 100% · Static HTML ✅ · Custom Domain ✅ · HTTPS ✅<br><br>1. สร้าง GitHub repo ชื่อ <span class="tag">psd-enginno-sbs</span><br>2. Upload ไฟล์ .html ทั้งหมด<br>3. Settings → Pages → Branch: main<br>4. URL: <span class="tag">ienginnotech.github.io/psd-enginno-sbs</span></div>
+          <span class="badge badge-green">⭐ แนะนำอันดับ 1</span>
+        </div>
+        <div class="card" style="border-color:rgba(59,130,246,.3)">
+          <div style="font-size:32px;margin-bottom:12px">🌊</div>
+          <div class="ff-d fw-700" style="font-size:16px;color:var(--blue);margin-bottom:8px">Netlify</div>
+          <div class="text-muted" style="font-size:12px;line-height:1.7;margin-bottom:16px">ฟรี · Drag & Drop Deploy ✅ · Auto HTTPS ✅<br><br>1. ไปที่ netlify.com<br>2. Drag & Drop โฟลเดอร์ไฟล์<br>3. รับ URL ทันที: <span class="tag">sbs.netlify.app</span></div>
+          <span class="badge badge-blue">ง่ายที่สุด</span>
+        </div>
+        <div class="card" style="border-color:rgba(234,179,8,.3)">
+          <div style="font-size:32px;margin-bottom:12px">📋</div>
+          <div class="ff-d fw-700" style="font-size:16px;color:var(--yellow);margin-bottom:8px">Google Apps Script</div>
+          <div class="text-muted" style="font-size:12px;line-height:1.7;margin-bottom:16px">ฟรี · Google Account ✅ · เชื่อม Sheets ✅<br><br>1. script.google.com<br>2. สร้าง Project → วาง HTML<br>3. Deploy → Web App</div>
+          <span class="badge badge-yellow">Google Ecosystem</span>
+        </div>
+      </div>
+      <div class="card mt-16">
+        <div class="ff-d fw-700" style="font-size:16px;margin-bottom:12px">📋 Deploy Checklist</div>
+        <div class="metric-row"><span>📁 วางไฟล์ทั้งหมดในโฟลเดอร์เดียวกัน</span><span class="badge badge-green">✅ Required</span></div>
+        <div class="metric-row"><span>🔑 ตั้งค่า Google Apps Script URL</span><span class="badge badge-yellow">⚠ Important</span></div>
+        <div class="metric-row"><span>🤖 ใส่ Anthropic API Key (ถ้าใช้ AI)</span><span class="badge badge-gray">Optional</span></div>
+        <div class="metric-row"><span>📲 ตั้งค่า Line OA Token</span><span class="badge badge-gray">Optional</span></div>
+        <div class="metric-row"><span>🔐 เปลี่ยน Admin Password หลัง Deploy</span><span class="badge badge-red">⚠ สำคัญ</span></div>
+      </div>
+    </div>
+
+    <!-- ── ADMIN ── -->
+    <div id="view-admin" class="view">
+      <div class="section-header"><div><div class="section-title">👥 Admin Management</div><div class="section-sub">จัดการผู้ใช้ · อนุมัติ · กำหนด Module Access</div></div></div>
+      <div class="kpi-grid">
+        <div class="kpi yellow"><div class="kpi-label">รออนุมัติ</div><div class="kpi-value ff-d text-yellow" id="adm-pending">0</div></div>
+        <div class="kpi green"><div class="kpi-label">อนุมัติแล้ว</div><div class="kpi-value ff-d text-green" id="adm-approved">0</div></div>
+        <div class="kpi red"><div class="kpi-label">ปฏิเสธ</div><div class="kpi-value ff-d text-red" id="adm-rejected">0</div></div>
+        <div class="kpi blue"><div class="kpi-label">ทั้งหมด</div><div class="kpi-value ff-d text-blue" id="adm-total">0</div></div>
+      </div>
+      <div class="card mb-16">
+        <div class="flex justify-between flex-center mb-12"><div class="ff-d fw-600" style="font-size:16px">⏳ รออนุมัติ <span class="badge badge-yellow" id="adm-pend-badge">0</span></div></div>
+        <div id="pending-empty" style="display:none;padding:24px;text-align:center;color:var(--text3)">✅ ไม่มีคำขอรออนุมัติ</div>
+        <div class="table-wrap" id="pending-wrap">
+          <table><thead><tr><th>ชื่อ</th><th>Username</th><th>Email</th><th>Business Group</th><th>อาคาร</th><th>แผนก</th><th>Role</th><th>วันที่</th><th>Actions</th></tr></thead>
+          <tbody id="pending-tbody"></tbody></table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ff-d fw-600" style="font-size:16px;margin-bottom:12px">👥 ผู้ใช้ทั้งหมด</div>
+        <div class="table-wrap">
+          <table><thead><tr><th>ชื่อ</th><th>Username</th><th>Business Group</th><th>อาคาร</th><th>Role</th><th>สถานะ</th><th>วันที่</th><th>Actions</th></tr></thead>
+          <tbody id="allusers-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- ── CD KEY ── -->
+    <div id="view-cdkey" class="view">
+      <div class="section-header"><div><div class="section-title">🔑 CD Key Management</div><div class="section-sub">ออก · ติดตาม · ยกเลิก License Key — ใช้เฉพาะ PSD Engineering เท่านั้น</div></div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('addCDKeyModal')">+ ออก CD Key ใหม่</button>
+      </div>
+      <div class="alert-box alert-warn mb-16">⚠ CD Key สำหรับใช้งานภายในองค์กร PSD Engineering เท่านั้น ห้ามใช้นอกบริษัท</div>
+      <div class="table-wrap">
+        <table><thead><tr><th>CD Key</th><th>ประเภท</th><th>Business Group</th><th>ออกให้</th><th>วันออก</th><th>วันหมดอายุ</th><th>ใช้งาน</th><th>สถานะ</th><th>Actions</th></tr></thead>
+        <tbody id="cdkey-tbody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- ── CONFIG ── -->
+    <div id="view-config" class="view">
+      <div class="section-header"><div><div class="section-title">⚙ Configuration</div><div class="section-sub">ตั้งค่า API Keys · URLs · ระบบทั้งหมด</div></div>
+        <button class="btn btn-primary btn-sm" onclick="saveAllConfig()">💾 Save All Config</button>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="ff-d fw-700" style="font-size:15px;margin-bottom:14px">🤖 Anthropic AI</div>
+          <div class="form-group"><label class="form-label">API Key</label><input class="form-control" id="cfg-ai-key" type="password" placeholder="sk-ant-..."></div>
+          <div class="form-group"><label class="form-label">Model</label>
+            <select class="form-control" id="cfg-ai-model">
+              <option value="claude-sonnet-4-6">claude-sonnet-4-6 (Recommended)</option>
+              <option value="claude-opus-4-6">claude-opus-4-6 (Powerful)</option>
+              <option value="claude-haiku-4-5">claude-haiku-4-5 (Fast)</option>
+            </select>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ff-d fw-700" style="font-size:15px;margin-bottom:14px">📊 Google Apps Script (DB)</div>
+          <div class="form-group"><label class="form-label">Apps Script URL</label><input class="form-control ff-m" id="cfg-gas-url" placeholder="https://script.google.com/macros/s/.../exec" style="font-size:11px"></div>
+          <div class="form-group"><label class="form-label">Spreadsheet ID</label><input class="form-control ff-m" id="cfg-sheet-id" placeholder="Google Sheet ID"></div>
+          <button class="btn btn-success btn-sm" onclick="testGASConfig()">🔌 Test Connection</button>
+        </div>
+        <div class="card">
+          <div class="ff-d fw-700" style="font-size:15px;margin-bottom:14px">💬 Line OA</div>
+          <div class="form-group"><label class="form-label">Channel Access Token</label><input class="form-control" id="cfg-line-token" placeholder="Line Token"></div>
+          <div class="form-group"><label class="form-label">Group ID</label><input class="form-control" id="cfg-line-group" placeholder="Group ID"></div>
+          <button class="btn btn-success btn-sm" onclick="testLineNotify()">📤 Test Send</button>
+        </div>
+        <div class="card">
+          <div class="ff-d fw-700" style="font-size:15px;margin-bottom:14px">📡 IoT / BAS / BMS</div>
+          <div class="form-group"><label class="form-label">MQTT Broker</label><input class="form-control" id="cfg-mqtt" placeholder="mqtt://broker:1883"></div>
+          <div class="form-group"><label class="form-label">BAS Endpoint</label><input class="form-control" id="cfg-bas" placeholder="http://bms/api"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end #content -->
+</main>
+
+<!-- NOTIFICATION PANEL -->
+<div class="notif-panel" id="notif-panel">
+  <div class="flex justify-between flex-center mb-16">
+    <div class="ff-d fw-700">🔔 Notifications</div>
+    <div class="flex gap-8">
+      <button class="btn btn-secondary btn-sm" onclick="clearNotifs()">Clear All</button>
+      <button class="btn btn-secondary btn-sm" onclick="toggleNotif()">✕</button>
+    </div>
+  </div>
+  <div id="notif-panel-list"></div>
+</div>
+
+<!-- ADD CD KEY MODAL -->
+<div class="modal-overlay" id="addCDKeyModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">🔑 ออก CD Key ใหม่</div><button class="btn btn-secondary btn-sm" onclick="closeModal('addCDKeyModal')">✕</button></div>
+    <div class="form-group"><label class="form-label">ประเภท Key</label>
+      <select class="form-control" id="key-type">
+        <option value="DEMO">DEMO — 30 วัน (ดูอย่างเดียว)</option>
+        <option value="TRIAL">TRIAL — 90 วัน (Module ที่กำหนด)</option>
+        <option value="FULL">FULL — 1 ปี (ทุก Module เต็มสิทธิ์)</option>
+        <option value="INTERNAL">INTERNAL — ไม่มีวันหมดอายุ (ใช้ภายใน)</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Business Group</label>
+        <select class="form-control" id="key-bg">
+          <option value="ALL">All — ทุก Module</option>
+          <option value="commercial">Commercial</option>
+          <option value="office">Office Building</option>
+          <option value="hotel">Hotel & Service Apt.</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">ออกให้ (ชื่อ/แผนก)</label><input class="form-control" id="key-to" placeholder="PSD Engineering Dept."></div>
+    </div>
+    <div class="form-group"><label class="form-label">หมายเหตุ</label><input class="form-control" id="key-note" placeholder="Internal use only — PSD Engineering"></div>
+    <div class="flex gap-8 mt-16" style="justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('addCDKeyModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="issueCDKey()">🔑 ออก CD Key</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  PSD ● eNGINNo SMART BUILDING SUSTAINABLE — Main Platform
+//  v1.0 · 2026 · PSD Engineering Dept.
+// ════════════════════════════════════════════════════════
+
+const ADMIN = { username:'sbs_admin', password:'psd@2026', name:'SBS Administrator', role:'admin', dept:'Engineering', bg:'ALL' };
+const K = 'sbs_';
+const DB = {
+  get:(k,d)=>{ try{ return JSON.parse(localStorage.getItem(K+k))??d; }catch{ return d; } },
+  set:(k,v)=>localStorage.setItem(K+k, JSON.stringify(v)),
+};
+
+// Built-in valid CD Keys (PSD internal use only)
+const BUILTIN_KEYS = {
+  'SBS-PSD1-2026-MAIN': { type:'INTERNAL', bg:'ALL', to:'PSD Engineering Dept.', active:true, note:'Master Key' },
+  'SBS-COM1-2026-TEST': { type:'TRIAL',    bg:'commercial', to:'Commercial Team', active:true, note:'Trial' },
+  'SBS-OFF1-2026-TEST': { type:'TRIAL',    bg:'office',     to:'Office Team',     active:true, note:'Trial' },
+  'SBS-HTL1-2026-TEST': { type:'TRIAL',    bg:'hotel',      to:'Hotel Team',      active:true, note:'Trial' },
+};
+
+let currentUser = null;
+let charts = {};
+let notifs = DB.get('notifs', [
+  { id:1, type:'warn', title:'PPM Due — Commercial', msg:'Chiller ต้องทำ PM ภายใน 3 วัน', time: new Date().toISOString(), read:false },
+  { id:2, type:'info', title:'Energy Alert — Office', msg:'การใช้ไฟฟ้าสูงกว่าค่าเฉลี่ย 12%', time: new Date().toISOString(), read:false },
+  { id:3, type:'danger', title:'Work Order Critical', msg:'ลิฟต์ B1 หยุดทำงาน — Commercial Module', time: new Date().toISOString(), read:false },
+]);
+
+// ── CLOCK ──
+setInterval(()=>{
+  const el=document.getElementById('clock'); if(!el) return;
+  const n=new Date();
+  el.textContent=n.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+n.toLocaleTimeString('th-TH');
+},1000);
+
+// ── HELPERS ──
+function fmtDate(d){ if(!d)return '—'; try{return new Date(d).toLocaleDateString('th-TH');}catch{return d;} }
+function genId(p){ return p+'-'+Date.now().toString(36).toUpperCase().slice(-6); }
+function openModal(id){ document.getElementById(id)?.classList.add('open'); }
+function closeModal(id){ document.getElementById(id)?.classList.remove('open'); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open')); });
+
+// ── AUTH ──
+function switchTab(tab){
+  document.getElementById('tab-login').classList.toggle('active', tab==='login');
+  document.getElementById('tab-reg').classList.toggle('active', tab==='reg');
+  document.getElementById('pane-login').style.display = tab==='login'?'':'none';
+  document.getElementById('pane-reg').style.display   = tab==='reg'?'':'none';
+}
+
+function verifyCDKey(){
+  const key = document.getElementById('inp-cdkey').value.trim().toUpperCase();
+  const el = document.getElementById('cdkey-status');
+  const allKeys = { ...BUILTIN_KEYS, ...DB.get('cdkeys',{}) };
+  if(allKeys[key] && allKeys[key].active){
+    el.className='cdkey-status ok';
+    el.textContent='✅ Key ถูกต้อง — '+allKeys[key].to+' ('+allKeys[key].type+')';
+    el.dataset.valid = 'true';
+  } else {
+    el.className='cdkey-status err';
+    el.textContent='❌ Key ไม่ถูกต้องหรือหมดอายุ — ติดต่อ PSD Engineering';
+    el.dataset.valid = 'false';
+  }
+}
+
+function doLogin(){
+  const u=document.getElementById('inp-user').value.trim();
+  const p=document.getElementById('inp-pass').value;
+  const err=document.getElementById('login-err');
+  err.classList.remove('show');
+  if(u===ADMIN.username && p===ADMIN.password){ loginSuccess(ADMIN); return; }
+  const users=DB.get('users',[]);
+  const found=users.find(x=>x.username===u && atob(x.ph||'')===p && x.status==='approved');
+  if(found){ loginSuccess(found); return; }
+  err.classList.add('show');
+}
+
+function loginSuccess(user){
+  currentUser=user;
+  DB.set('currentUser',user);
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('sidebar-user').style.display='flex';
+  document.getElementById('user-av').textContent=user.name?.[0]?.toUpperCase()||'U';
+  document.getElementById('user-nm').textContent=user.name;
+  document.getElementById('user-rl').textContent=(user.dept||'')+(user.bg?' · '+user.bg:'');
+  if(user.role==='admin'){ document.getElementById('nav-admin').style.display='flex'; document.getElementById('nav-cdkey').style.display='flex'; }
+  updateAdminBadge(); updateNotifBadge();
+  loadSavedConfig();
+  refreshDashboard();
+  showView('dashboard');
+}
+
+function doLogout(){
+  currentUser=null; DB.set('currentUser',null);
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('sidebar-user').style.display='none';
+  document.getElementById('nav-admin').style.display='none';
+  document.getElementById('nav-cdkey').style.display='none';
+  document.getElementById('inp-user').value='';
+  document.getElementById('inp-pass').value='';
+}
+
+function doRegister(){
+  const cdKeyEl=document.getElementById('cdkey-status');
+  if(cdKeyEl.dataset.valid !== 'true'){ alert('กรุณาตรวจสอบ CD Key ก่อน'); return; }
+  const name=document.getElementById('reg-name').value.trim();
+  const pos=document.getElementById('reg-pos').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const dept=document.getElementById('reg-dept').value;
+  const bg=document.getElementById('reg-bg').value;
+  const building=document.getElementById('reg-building').value;
+  const uname=document.getElementById('reg-user').value.trim();
+  const pass=document.getElementById('reg-pass').value;
+  const role=document.getElementById('reg-role').value;
+  const err=document.getElementById('reg-err');
+  err.classList.remove('show');
+  if(!name||!email||!dept||!bg||!uname||!pass){ err.textContent='กรุณากรอกข้อมูลให้ครบ'; err.classList.add('show'); return; }
+  if(pass.length<6){ err.textContent='Password ต้องมีอย่างน้อย 6 ตัวอักษร'; err.classList.add('show'); return; }
+  const users=DB.get('users',[]);
+  if(users.find(u=>u.username===uname)){ err.textContent='Username นี้ถูกใช้แล้ว'; err.classList.add('show'); return; }
+  users.push({ id:genId('USR'), username:uname, name, pos, email, dept, bg, building, role, ph:btoa(pass), status:'pending', regDate:new Date().toISOString() });
+  DB.set('users',users);
+  document.getElementById('reg-ok').classList.add('show');
+  setTimeout(()=>switchTab('login'),2500);
+}
+
+function updateBuildingSelect(){
+  const bg=document.getElementById('reg-bg').value;
+  const map={
+    commercial:['BHIRAJBURI Commercial Building','PSD Township Hub','BITEC Bangna Hall'],
+    office:['PSD HQ Office Tower','PSD Engineering Building','PSD Smart Office'],
+    hotel:['PSD Hotel & Suites','PSD Serviced Apartment','PSD Residence']
+  };
+  const sel=document.getElementById('reg-building');
+  sel.innerHTML='<option value="">-- เลือกอาคาร --</option>'+(map[bg]||[]).map(b=>`<option>${b}</option>`).join('');
+}
+
+// ── NAVIGATION ──
+const TITLES = {
+  dashboard:'Dashboard', hub:'Module Hub', notifications:'Notifications',
+  integrations:'Integrations', deploy:'Free Server Deploy',
+  admin:'Admin Management', cdkey:'CD Key Management', config:'Configuration'
+};
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>{ if(n.getAttribute('onclick')?.includes("'"+name+"'")) n.classList.add('active'); });
+  document.getElementById('topbar-title').textContent = TITLES[name]||name;
+  document.getElementById('topbar-bread').textContent = `PSD eNGINNo SBS › ${TITLES[name]||name}`;
+  if(name==='admin') renderAdmin();
+  if(name==='cdkey') renderCDKeys();
+  if(name==='config') loadSavedConfig();
+  if(name==='notifications') renderNotifsMain();
+}
+
+// ── OPEN MODULE ──
+function openModule(mod){
+  const files = { commercial:'eNGINNo_SBS_Commercial.html', office:'eNGINNo_SBS_Office.html', hotel:'eNGINNo_SBS_Hotel.html' };
+  const file = files[mod];
+  if(!file){ alert('Module ไม่พบ'); return; }
+  // Pass user session via URL hash
+  const session = encodeURIComponent(JSON.stringify({ user: currentUser, gasUrl: DB.get('gas_url',''), ts: Date.now() }));
+  const url = file + '#session=' + session;
+  window.open(url, '_blank');
+}
+
+// ── DASHBOARD ──
+function refreshDashboard(){
+  // Aggregate from all module DBs
+  const cm = { assets: DB.get('cm_assets',[]).length, wo: DB.get('cm_wo',[]).filter(w=>w.status!=='closed').length, ppm: DB.get('cm_ppm',[]).filter(p=>p.status==='planned').length };
+  const of = { assets: DB.get('of_assets',[]).length, wo: DB.get('of_wo',[]).filter(w=>w.status!=='closed').length, ppm: DB.get('of_ppm',[]).filter(p=>p.status==='planned').length };
+  const ht = { assets: DB.get('ht_assets',[]).length, wo: DB.get('ht_wo',[]).filter(w=>w.status!=='closed').length, ppm: DB.get('ht_ppm',[]).filter(p=>p.status==='planned').length };
+
+  const totalAssets = cm.assets+of.assets+ht.assets;
+  const totalWO = cm.wo+of.wo+ht.wo;
+
+  document.getElementById('kpi-buildings').textContent = '9';
+  document.getElementById('kpi-assets').textContent = totalAssets||'—';
+  document.getElementById('kpi-wo').textContent = totalWO;
+  document.getElementById('kpi-energy').textContent = '4,280';
+
+  // Module cards
+  ['assets','wo','ppm'].forEach(k=>{ document.getElementById('cm-'+k).textContent=cm[k]||0; document.getElementById('of-'+k).textContent=of[k]||0; document.getElementById('ht-'+k).textContent=ht[k]||0; });
+  ['cm','of','ht'].forEach(p=>{ ['assets','wo','energy'].forEach(s=>{ const el=document.getElementById('hub-'+p+'-'+s); if(el) el.textContent=s==='energy'?'1,420':s==='assets'?totalAssets/3|0:totalWO/3|0; }); });
+
+  // Strategy KPIs
+  document.getElementById('str-wo').textContent=totalWO;
+  document.getElementById('str-ppm').textContent=cm.ppm+of.ppm+ht.ppm;
+  document.getElementById('str-mttr').textContent='3.2h';
+  document.getElementById('str-kwh').textContent='4,280';
+  document.getElementById('str-co2').textContent='2,054 kg';
+  document.getElementById('str-solar').textContent='480';
+  document.getElementById('str-access').textContent='342';
+  document.getElementById('str-inc').textContent='0';
+  document.getElementById('str-safe').textContent='180';
+  document.getElementById('str-train').textContent='24';
+  document.getElementById('str-cert').textContent='38';
+  document.getElementById('str-hrs').textContent='42h';
+
+  // CD Key badge
+  const activeCDKey = DB.get('active_cdkey','SBS-PSD1-2026-MAIN');
+  document.getElementById('cdkey-badge-dash').style.display='inline-flex';
+  document.getElementById('cdkey-show').textContent=activeCDKey;
+  document.getElementById('cdkey-hub').textContent=activeCDKey;
+
+  // Update ring status
+  const hasWOCrit = totalWO > 0;
+  document.getElementById('ring-facility').className='ring-dot '+(hasWOCrit?'warn':'ok');
+
+  drawDashboardCharts();
+}
+
+function drawDashboardCharts(){
+  // Energy chart
+  const days=[]; const vals=[];
+  for(let i=6;i>=0;i--){ const d=new Date(Date.now()-86400000*i); days.push(d.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit'})); vals.push(Math.round(3800+Math.random()*800)); }
+  if(charts.energy){ charts.energy.destroy(); delete charts.energy; }
+  const ctx=document.getElementById('chartEnergy');
+  if(ctx) charts.energy=new Chart(ctx,{type:'line',data:{labels:days,datasets:[
+    {label:'Commercial',data:vals.map(v=>Math.round(v*.5)),borderColor:'#F97316',fill:false,tension:.4},
+    {label:'Office',data:vals.map(v=>Math.round(v*.3)),borderColor:'#3B82F6',fill:false,tension:.4},
+    {label:'Hotel',data:vals.map(v=>Math.round(v*.2)),borderColor:'#A855F7',fill:false,tension:.4},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8B949E',font:{size:10}}}},scales:{x:{ticks:{color:'#8B949E',font:{size:10}}},y:{ticks:{color:'#8B949E'},grid:{color:'#21262D'}}}}});
+
+  // WO chart
+  if(charts.wo){ charts.wo.destroy(); delete charts.wo; }
+  const ctx2=document.getElementById('chartWO');
+  if(ctx2) charts.wo=new Chart(ctx2,{type:'doughnut',data:{labels:['Open','In Progress','Closed'],datasets:[{data:[3,2,12],backgroundColor:['#F97316','#3B82F6','#22C55E'],borderWidth:0,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8B949E',font:{size:10}}}}}});
+}
+
+// ── NOTIFICATIONS ──
+function updateNotifBadge(){
+  const unread = notifs.filter(n=>!n.read).length;
+  document.getElementById('nb-notif').textContent=unread;
+  document.getElementById('nb-notif').style.display=unread?'':'none';
+  document.getElementById('notif-count').textContent=unread;
+}
+function toggleNotif(){ document.getElementById('notif-panel').classList.toggle('open'); renderNotifsPanel(); }
+function renderNotifsPanel(){
+  const el=document.getElementById('notif-panel-list');
+  el.innerHTML=notifs.length?notifs.map(n=>`<div class="notif-item ${n.read?'':'unread'}" onclick="markRead(${n.id})"><div style="font-size:12px;font-weight:600">${n.title}</div><div style="font-size:12px;color:var(--text2);margin-top:2px">${n.msg}</div><div class="notif-time">${fmtDate(n.time)}</div></div>`).join(''):'<div class="text-muted" style="padding:24px;text-align:center">ไม่มีการแจ้งเตือน</div>';
+}
+function renderNotifsMain(){
+  const el=document.getElementById('notif-list-main');
+  if(!el) return;
+  el.innerHTML=notifs.length?notifs.map(n=>`<div class="alert-box ${n.type==='danger'?'alert-danger':n.type==='warn'?'alert-warn':'alert-info'}" style="cursor:pointer" onclick="markRead(${n.id})"><div class="flex justify-between"><span class="fw-600">${n.title}</span><span class="badge ${n.read?'badge-gray':'badge-orange'}">${n.read?'อ่านแล้ว':'ยังไม่อ่าน'}</span></div><div style="font-size:12px;margin-top:4px">${n.msg}</div><div style="font-size:10px;color:var(--text3);margin-top:4px">${fmtDate(n.time)}</div></div>`).join(''):'<div class="text-muted" style="padding:40px;text-align:center;font-size:14px">✅ ไม่มีการแจ้งเตือน</div>';
+}
+function markRead(id){ notifs=notifs.map(n=>n.id===id?{...n,read:true}:n); DB.set('notifs',notifs); updateNotifBadge(); renderNotifsPanel(); renderNotifsMain(); }
+function clearNotifs(){ notifs=[]; DB.set('notifs',notifs); updateNotifBadge(); renderNotifsPanel(); renderNotifsMain(); }
+
+// ── ADMIN ──
+function renderAdmin(){
+  const users=DB.get('users',[]);
+  const pending=users.filter(u=>u.status==='pending');
+  const approved=users.filter(u=>u.status==='approved');
+  const rejected=users.filter(u=>u.status==='rejected');
+  document.getElementById('adm-pending').textContent=pending.length;
+  document.getElementById('adm-approved').textContent=approved.length;
+  document.getElementById('adm-rejected').textContent=rejected.length;
+  document.getElementById('adm-total').textContent=users.length;
+  document.getElementById('adm-pend-badge').textContent=pending.length+' รายการ';
+  document.getElementById('pending-empty').style.display=pending.length?'none':'block';
+  document.getElementById('pending-wrap').style.display=pending.length?'':'none';
+  document.getElementById('pending-tbody').innerHTML=pending.map(u=>`<tr>
+    <td class="fw-600">${u.name}<div style="font-size:10px;color:var(--text3)">${u.pos||''}</div></td>
+    <td><span class="tag">${u.username}</span></td><td style="font-size:11px">${u.email}</td>
+    <td><span class="badge badge-orange">${u.bg}</span></td><td style="font-size:11px">${u.building||'—'}</td>
+    <td style="font-size:11px">${u.dept}</td><td><span class="badge badge-blue">${u.role}</span></td>
+    <td style="font-size:11px">${fmtDate(u.regDate)}</td>
+    <td><div class="flex gap-8"><button class="btn btn-success btn-sm" onclick="approveUser('${u.username}')">✅</button><button class="btn btn-danger btn-sm" onclick="rejectUser('${u.username}')">❌</button></div></td>
+  </tr>`).join('');
+  document.getElementById('allusers-tbody').innerHTML=users.map(u=>{
+    const sb=u.status==='approved'?'<span class="badge badge-green">✅</span>':u.status==='rejected'?'<span class="badge badge-red">❌</span>':'<span class="badge badge-yellow">⏳</span>';
+    return `<tr><td class="fw-600">${u.name}</td><td><span class="tag">${u.username}</span></td><td><span class="badge badge-orange">${u.bg}</span></td><td style="font-size:11px">${u.building||'—'}</td><td><span class="badge badge-blue">${u.role}</span></td><td>${sb}</td><td style="font-size:11px">${fmtDate(u.regDate)}</td><td><button class="btn btn-danger btn-sm btn-icon" onclick="deleteUser('${u.username}')">🗑</button></td></tr>`;
+  }).join('');
+}
+function approveUser(un){ const users=DB.get('users',[]); const i=users.findIndex(u=>u.username===un); if(i<0)return; users[i].status='approved'; users[i].approvedBy=currentUser.name; users[i].approvedDate=new Date().toISOString(); DB.set('users',users); updateAdminBadge(); renderAdmin(); alert('✅ อนุมัติ "'+users[i].name+'" เรียบร้อย'); }
+function rejectUser(un){ if(!confirm('ปฏิเสธ "'+un+'"?'))return; const users=DB.get('users',[]); const i=users.findIndex(u=>u.username===un); if(i<0)return; users[i].status='rejected'; DB.set('users',users); updateAdminBadge(); renderAdmin(); }
+function deleteUser(un){ if(!confirm('ลบผู้ใช้ "'+un+'"?'))return; DB.set('users',DB.get('users',[]).filter(u=>u.username!==un)); updateAdminBadge(); renderAdmin(); }
+function updateAdminBadge(){ const p=DB.get('users',[]).filter(u=>u.status==='pending').length; const b=document.getElementById('nb-admin'); if(b){b.textContent=p;b.style.display=p?'':'none';} }
+
+// ── CD KEYS ──
+function renderCDKeys(){
+  const storedKeys=DB.get('cdkeys',{});
+  const allKeys={...BUILTIN_KEYS,...storedKeys};
+  document.getElementById('cdkey-tbody').innerHTML=Object.entries(allKeys).map(([key,v])=>`<tr>
+    <td class="ff-m" style="font-size:12px;color:var(--orange)">${key}</td>
+    <td><span class="badge ${v.type==='INTERNAL'?'badge-purple':v.type==='FULL'?'badge-green':v.type==='TRIAL'?'badge-blue':'badge-gray'}">${v.type}</span></td>
+    <td>${v.bg}</td><td style="font-size:12px">${v.to}</td>
+    <td style="font-size:11px">${fmtDate(v.issuedDate)||'—'}</td>
+    <td style="font-size:11px">${v.type==='INTERNAL'?'ไม่มีวันหมดอายุ':fmtDate(v.expDate)||'—'}</td>
+    <td style="font-size:11px">${v.usedBy||'—'}</td>
+    <td><span class="badge ${v.active?'badge-green':'badge-red'}">${v.active?'✅ Active':'❌ Revoked'}</span></td>
+    <td>${v.type!=='INTERNAL'?`<button class="btn btn-danger btn-sm" onclick="revokeCDKey('${key}')">Revoke</button>`:'<span class="text-muted" style="font-size:11px">System Key</span>'}</td>
+  </tr>`).join('');
+}
+
+function issueCDKey(){
+  const type=document.getElementById('key-type').value;
+  const bg=document.getElementById('key-bg').value;
+  const to=document.getElementById('key-to').value||'PSD Engineering';
+  const note=document.getElementById('key-note').value;
+  const rand=()=>Math.random().toString(36).slice(2,6).toUpperCase();
+  const key=`SBS-${rand()}-${rand()}-${rand()}`;
+  const days={DEMO:30,TRIAL:90,FULL:365,INTERNAL:0};
+  const expDate=type!=='INTERNAL'?new Date(Date.now()+days[type]*86400000).toISOString():null;
+  const storedKeys=DB.get('cdkeys',{});
+  storedKeys[key]={type,bg,to,note,active:true,issuedDate:new Date().toISOString(),issuedBy:currentUser.name,expDate};
+  DB.set('cdkeys',storedKeys);
+  closeModal('addCDKeyModal');
+  renderCDKeys();
+  alert(`✅ CD Key ออกสำเร็จ!\n\n${key}\n\nType: ${type} | BG: ${bg}\nสำหรับ: ${to}`);
+}
+
+function revokeCDKey(key){ if(!confirm('Revoke Key "'+key+'"?'))return; const k=DB.get('cdkeys',{}); if(k[key])k[key].active=false; DB.set('cdkeys',k); renderCDKeys(); }
+
+// ── CONFIG ──
+function saveAllConfig(){
+  DB.set('gas_url', document.getElementById('cfg-gas-url').value);
+  DB.set('gas_sheetid', document.getElementById('cfg-sheet-id').value);
+  DB.set('ai_key', document.getElementById('cfg-ai-key').value);
+  DB.set('ai_model', document.getElementById('cfg-ai-model').value);
+  DB.set('line_token', document.getElementById('cfg-line-token').value);
+  DB.set('line_group', document.getElementById('cfg-line-group').value);
+  DB.set('mqtt_url', document.getElementById('cfg-mqtt').value);
+  DB.set('bas_url', document.getElementById('cfg-bas').value);
+  alert('✅ บันทึก Configuration สำเร็จ!');
+}
+function loadSavedConfig(){
+  const fields={
+    'cfg-gas-url':'gas_url','cfg-sheet-id':'gas_sheetid','cfg-ai-key':'ai_key',
+    'cfg-line-token':'line_token','cfg-line-group':'line_group',
+    'cfg-mqtt':'mqtt_url','cfg-bas':'bas_url','gas-url':'gas_url','gas-sheetid':'gas_sheetid'
+  };
+  Object.entries(fields).forEach(([id,k])=>{ const el=document.getElementById(id); if(el) el.value=DB.get(k,'')||''; });
+  const modelEl=document.getElementById('cfg-ai-model');
+  if(modelEl) modelEl.value=DB.get('ai_model','claude-sonnet-4-6');
+}
+function saveGASConfig(){ DB.set('gas_url',document.getElementById('gas-url').value); DB.set('gas_sheetid',document.getElementById('gas-sheetid').value); alert('✅ บันทึกแล้ว'); }
+function saveAIKey(){ DB.set('ai_key',document.getElementById('ai-key').value); alert('✅ บันทึก AI Key แล้ว'); }
+function saveLineConfig(){ DB.set('line_token',document.getElementById('line-token').value); DB.set('line_group',document.getElementById('line-group').value); alert('✅ บันทึกแล้ว'); }
+function saveIoTConfig(){ DB.set('mqtt_url',document.getElementById('mqtt-url').value); DB.set('bas_url',document.getElementById('bas-url').value); alert('✅ บันทึก Stub Config แล้ว'); }
+async function testGAS(){ const url=document.getElementById('gas-url').value; if(!url){alert('กรุณาใส่ URL');return;} try{const r=await fetch(url+'?action=ping'); const d=await r.json(); alert(d.ok?'✅ เชื่อมต่อสำเร็จ!\n'+d.msg:'❌ Error: '+d.msg);}catch(e){alert('❌ Error: '+e.message);} }
+async function testGASConfig(){ const url=document.getElementById('cfg-gas-url').value; if(!url){alert('กรุณาใส่ URL');return;} try{const r=await fetch(url+'?action=ping'); const d=await r.json(); alert(d.ok?'✅ '+d.msg:'❌ '+d.msg);}catch(e){alert('❌ '+e.message);} }
+function testLineNotify(){ alert('📲 Line Notify Stub — เชื่อมต่อจริงหลัง Deploy บน Server'); }
+
+// ── INIT ──
+DB.set('active_cdkey', DB.get('active_cdkey','SBS-PSD1-2026-MAIN'));
+const saved = DB.get('currentUser', null);
+if(saved?.username){ loginSuccess(saved); }
+updateNotifBadge();
+</script>
+</body>
+</html>
