@@ -178,6 +178,7 @@ select.form-control option{background:var(--bg3)}
   <div class="sb-section">🔧 Facility & Maintenance</div>
   <div class="nav-item" onclick="showView('assets')"><span class="nav-icon">⚙</span>Asset Register (ALC)</div>
   <div class="nav-item" onclick="showView('wr')"><span class="nav-icon">🔧</span>Work Request (WR)<span class="nav-badge" id="nb-wr">0</span></div>
+  <div class="nav-item" onclick="showView('wr-analytics')"><span class="nav-icon">📐</span>WR Analytics (MTTR)</div>
   <div class="nav-item" onclick="showView('ppm')"><span class="nav-icon">📅</span>Preventive Maint. (PPM)</div>
   <div class="nav-item" onclick="showView('opm')"><span class="nav-icon">⚡</span>Operation (OPT/OEE)</div>
   <div class="nav-item" onclick="showView('ma')"><span class="nav-icon">📄</span>MA Contract</div>
@@ -239,8 +240,27 @@ select.form-control option{background:var(--bg3)}
 <!-- ══════════ DASHBOARD ══════════ -->
 <div id="view-dashboard" class="view active">
   <div class="section-hdr">
-    <div><div class="section-title">📊 Commercial Module Dashboard</div><div class="section-sub">BHIRAJBURI · Township · BITEC — 4-Strategy Overview · 2026</div></div>
-    <div class="flex gap-8"><button class="btn btn-secondary btn-sm" onclick="refreshDash()">↻ Refresh</button><button class="btn btn-secondary btn-sm" onclick="exportDash()">⬇ Export</button></div>
+    <div><div class="section-title">📊 Commercial Module Dashboard</div><div class="section-sub" id="dash-sub">ทุก Branch — 4-Strategy Overview · 2026</div></div>
+    <div class="flex gap-8">
+      <select class="form-control btn-sm" id="dash-filter-branch" style="width:180px" onchange="refreshDash()">
+        <option value="">ทุก Branch</option>
+        <option value="BITEC BURI">BITEC BURI</option>
+        <option value="BEAT ACTIVE">BEAT ACTIVE</option>
+        <option value="Venue - Banquet">Venue - Banquet</option>
+        <option value="Venue - CS">Venue - CS</option>
+        <option value="Venue - Front">Venue - Front</option>
+        <option value="Retail & Parking">Retail & Parking</option>
+        <option value="Township-Building">Township-Building</option>
+        <option value="Township-Maintenance">Township-Maintenance</option>
+        <option value="Township - BDM, Traffic, Fireman">Township - BDM</option>
+        <option value="About Food - GAYA">About Food - GAYA</option>
+        <option value="About Food - Kitchen">About Food - Kitchen</option>
+        <option value="About Food - Stewards">About Food - Stewards</option>
+        <option value="Workplace - ENG, BD">Workplace - ENG</option>
+      </select>
+      <button class="btn btn-secondary btn-sm" onclick="refreshDash()">↻ Refresh</button>
+      <button class="btn btn-secondary btn-sm" onclick="exportDash()">⬇ Export</button>
+    </div>
   </div>
 
   <div class="kpi-grid">
@@ -441,6 +461,104 @@ select.form-control option{background:var(--bg3)}
     </table>
   </div>
   <div id="wr-pagination" class="flex gap-8 mt-12 fc" style="justify-content:center"></div>
+</div>
+
+<!-- ══════════ WR ANALYTICS ══════════ -->
+<div id="view-wr-analytics" class="view">
+  <div class="section-hdr">
+    <div><div class="section-title">📐 WR Analytics — MTTR & Maintainability</div><div class="section-sub">วิเคราะห์ประสิทธิภาพการซ่อม · M = 1 − e^(−Target/MTTR)</div></div>
+    <div class="flex gap-8">
+      <select class="form-control btn-sm" id="ana-branch" style="width:180px" onchange="renderWRAnalytics()"><option value="">ทุก Branch</option></select>
+      <select class="form-control btn-sm" id="ana-period" style="width:120px" onchange="renderWRAnalytics()">
+        <option value="all">ทั้งหมด</option>
+        <option value="30">30 วันล่าสุด</option>
+        <option value="90">90 วันล่าสุด</option>
+        <option value="180">180 วันล่าสุด</option>
+        <option value="365">1 ปีล่าสุด</option>
+      </select>
+      <button class="btn btn-secondary btn-sm" onclick="exportAnalytics()">⬇ Export</button>
+    </div>
+  </div>
+
+  <!-- KPI MTTR & Maintainability -->
+  <div class="kpi-grid">
+    <div class="kpi orange"><div class="kpi-label">Avg MTTR (h)</div><div class="kpi-value t-orange" id="ana-mttr">—</div><div class="kpi-sub">เฉลี่ยชั่วโมงซ่อม</div></div>
+    <div class="kpi green"><div class="kpi-label">Maintainability</div><div class="kpi-value t-green" id="ana-maint">—%</div><div class="kpi-sub">M = 1−e^(−T/MTTR)</div></div>
+    <div class="kpi blue"><div class="kpi-label">Total Closed WR</div><div class="kpi-value t-blue" id="ana-closed">0</div><div class="kpi-sub">งานปิดแล้ว</div></div>
+    <div class="kpi teal"><div class="kpi-label">Best Technician</div><div class="kpi-value t-teal" style="font-size:14px" id="ana-best-tech">—</div><div class="kpi-sub">MTTR ต่ำสุด</div></div>
+    <div class="kpi yellow"><div class="kpi-label">Worst Issue Type</div><div class="kpi-value t-yellow" style="font-size:14px" id="ana-worst">—</div><div class="kpi-sub">MTTR สูงสุด</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs" id="ana-tabs">
+    <div class="tab active" onclick="switchAnaTab('branch',this)">🏢 By Branch</div>
+    <div class="tab" onclick="switchAnaTab('issue',this)">🔧 By Issue Type</div>
+    <div class="tab" onclick="switchAnaTab('tech',this)">👤 By Technician</div>
+    <div class="tab" onclick="switchAnaTab('trend',this)">📈 MTTR Trend</div>
+    <div class="tab" onclick="switchAnaTab('maintain',this)">⚙ Maintainability</div>
+  </div>
+
+  <!-- Branch Tab -->
+  <div id="ana-pane-branch">
+    <div class="grid-2 mb-16">
+      <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">⏱ MTTR by Branch (h)</div><div class="chart-wrap" style="height:260px"><canvas id="c-ana-branch-mttr"></canvas></div></div>
+      <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">⚙ Maintainability by Branch (%)</div><div class="chart-wrap" style="height:260px"><canvas id="c-ana-branch-maint"></canvas></div></div>
+    </div>
+    <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">📊 Branch Summary Table</div>
+      <div class="table-wrap"><table><thead><tr><th>Branch</th><th>Total WR</th><th>Closed</th><th>Avg MTTR (h)</th><th>Target (h)</th><th>Maintainability</th><th>ระดับ</th></tr></thead><tbody id="ana-branch-tbody"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- Issue Type Tab -->
+  <div id="ana-pane-issue" style="display:none">
+    <div class="grid-2 mb-16">
+      <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">⏱ MTTR by Issue Type (h)</div><div class="chart-wrap" style="height:280px"><canvas id="c-ana-issue-mttr"></canvas></div></div>
+      <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">⚙ Maintainability by Issue Type (%)</div><div class="chart-wrap" style="height:280px"><canvas id="c-ana-issue-maint"></canvas></div></div>
+    </div>
+    <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">📊 Issue Type Summary</div>
+      <div class="table-wrap"><table><thead><tr><th>Issue Type</th><th>Count</th><th>Closed</th><th>Avg MTTR (h)</th><th>Target (h)</th><th>Maintainability</th><th>ระดับ</th></tr></thead><tbody id="ana-issue-tbody"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- Technician Tab -->
+  <div id="ana-pane-tech" style="display:none">
+    <div class="grid-2 mb-16">
+      <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">⏱ MTTR by Technician (h)</div><div class="chart-wrap" style="height:280px"><canvas id="c-ana-tech-mttr"></canvas></div></div>
+      <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">📦 WR Count by Technician</div><div class="chart-wrap" style="height:280px"><canvas id="c-ana-tech-count"></canvas></div></div>
+    </div>
+    <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">📊 Technician Performance</div>
+      <div class="table-wrap"><table><thead><tr><th>ช่าง / Technician</th><th>Total WR</th><th>Closed</th><th>Avg MTTR (h)</th><th>Maintainability</th><th>Performance</th></tr></thead><tbody id="ana-tech-tbody"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- MTTR Trend Tab -->
+  <div id="ana-pane-trend" style="display:none">
+    <div class="card mb-16"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">📈 MTTR Monthly Trend</div><div class="chart-wrap" style="height:300px"><canvas id="c-ana-trend"></canvas></div></div>
+    <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">📈 WR Volume Trend</div><div class="chart-wrap" style="height:220px"><canvas id="c-ana-vol"></canvas></div></div>
+  </div>
+
+  <!-- Maintainability Tab -->
+  <div id="ana-pane-maintain" style="display:none">
+    <div class="card mb-16" style="background:var(--bg3)">
+      <div class="ff-d fw-6" style="font-size:14px;margin-bottom:8px">📐 สูตร Maintainability</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8">
+        <strong style="color:var(--orange)">M = 1 − e^(−Target/MTTR)</strong><br>
+        Target = เวลาที่คาดว่าจะซ่อมเสร็จ (ชั่วโมง) | MTTR = Mean Time To Repair จริง<br>
+        <span style="color:var(--green)">M ≥ 90%</span> = ดีมาก &nbsp;
+        <span style="color:var(--yellow)">70–89%</span> = พอใช้ &nbsp;
+        <span style="color:var(--red)">< 70%</span> = ต้องปรับปรุง
+      </div>
+    </div>
+    <div class="grid-2 mb-16">
+      <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">⚙ Maintainability Gauge by Branch</div><div class="chart-wrap" style="height:280px"><canvas id="c-ana-gauge"></canvas></div></div>
+      <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">📊 Maintainability vs Target</div>
+        <div id="ana-maint-bars"></div>
+      </div>
+    </div>
+    <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">📋 Summarize System Efficiency</div>
+      <div class="table-wrap"><table><thead><tr><th>System/Type</th><th>Count</th><th>Time (h)</th><th>MTTR (h/ครั้ง)</th><th>Target (h)</th><th>Cost (฿)</th><th>Maintainability</th><th>ระดับ</th></tr></thead><tbody id="ana-sys-tbody"></tbody></table></div>
+    </div>
+  </div>
 </div>
 
 <!-- ══════════ PPM ══════════ -->
@@ -969,6 +1087,17 @@ select.form-control option{background:var(--bg3)}
         </table></div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- WR DETAIL MODAL -->
+<div class="modal-overlay" id="wrDetailModal">
+  <div class="modal modal-lg">
+    <div class="modal-hdr">
+      <div class="modal-title">🔧 รายละเอียด Work Request</div>
+      <button class="btn btn-secondary btn-sm" onclick="closeModal('wrDetailModal')">✕</button>
+    </div>
+    <div id="wr-detail-content"></div>
   </div>
 </div>
 
@@ -2174,6 +2303,247 @@ async function syncToSheets(sheet,data){
   if(!url)return;
   try{await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'insert',sheet,data})});}catch(e){}
 }
+
+// ════════════════════════════════════════════════════
+//  DASHBOARD — Branch Filter Enhanced
+// ════════════════════════════════════════════════════
+const _origRefreshDash = refreshDash;
+refreshDash = function(){
+  const branch = document.getElementById('dash-filter-branch')?.value||'';
+  const sub = document.getElementById('dash-sub');
+  if(sub) sub.textContent = (branch||'ทุก Branch') + ' — 4-Strategy Overview · 2026';
+  const allWR = wrAllData.length ? wrAllData : DB.get('wr',[]);
+  const filteredWR = branch ? allWR.filter(w=>(w.branchName||w.branch||'')=== branch) : allWR;
+  const assets=DB.get('assets',[]);const ppm=DB.get('ppm',[]);const tenants=DB.get('tenants',[]);
+  const parking=DB.get('parking',[]);const energy=DB.get('energy',[]);
+  const today=new Date().toISOString().split('T')[0];
+  const todayE=energy.filter(e=>e.date===today&&e.src!=='Solar').reduce((s,e)=>s+(parseFloat(e.kwh)||0),0);
+  const openWR=filteredWR.filter(w=>w.status==='open'||w.status==='inprog');
+  const closedWR=filteredWR.filter(w=>w.status==='closed');
+  const withMttr=closedWR.filter(w=>parseFloat(w.mttrHours||w.mttr)>0);
+  const mttr=withMttr.length?withMttr.reduce((s,w)=>s+(parseFloat(w.mttrHours||w.mttr)||0),0)/withMttr.length:0;
+  const parkUsed=parking.filter(p=>p.status==='used').length;
+  const rev=tenants.filter(t=>t.status==='active').reduce((s,t)=>s+(parseFloat(t.rent)||0),0);
+  document.getElementById('d-assets').textContent=assets.length;
+  document.getElementById('d-wr').textContent=openWR.length.toLocaleString('th-TH');
+  document.getElementById('d-ppm').textContent=ppm.filter(p=>p.status==='planned').length;
+  document.getElementById('d-kwh').textContent=todayE.toFixed(0)||'1,420';
+  document.getElementById('d-tenant').textContent=tenants.filter(t=>t.status==='active').length;
+  document.getElementById('d-mttr').textContent=mttr.toFixed(1)+'h';
+  document.getElementById('d-park').textContent=parking.length?Math.round(parkUsed/parking.length*100)+'%':'0%';
+  document.getElementById('d-rev').textContent=fmtCurr(rev);
+  document.getElementById('d-safe').textContent='180';
+  const nb=document.getElementById('nb-wr');if(nb){nb.textContent=openWR.length;nb.style.display=openWR.length?'':'none';}
+  document.getElementById('nb-bcs').style.display=openWR.filter(w=>w.priority==='critical').length?'':'none';
+  document.getElementById('r1').className='ring-dot '+(openWR.length>0?'r-warn':'r-ok');
+  document.getElementById('r3').className='ring-dot '+(DB.get('incidents',[]).length>0?'r-crit':'r-ok');
+  dc('wr');const ctx=document.getElementById('c-wr');
+  if(ctx) charts.wr=new Chart(ctx,{type:'doughnut',data:{labels:['Open','In Progress','Closed'],datasets:[{data:[filteredWR.filter(w=>w.status==='open').length,filteredWR.filter(w=>w.status==='inprog').length,closedWR.length],backgroundColor:['#F97316','#3B82F6','#22C55E'],borderWidth:0,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8B949E',font:{size:10}}}}}});
+  dc('energy');const days=[],vals=[];
+  for(let i=6;i>=0;i--){const d=new Date(Date.now()-86400000*i);days.push(d.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit'}));const ds=d.toISOString().split('T')[0];vals.push(energy.filter(e=>e.date===ds&&e.src!=='Solar').reduce((s,e)=>s+(parseFloat(e.kwh)||0),0).toFixed(0));}
+  const ctx2=document.getElementById('c-energy');
+  if(ctx2) charts.energy=new Chart(ctx2,{type:'line',data:{labels:days,datasets:[{label:'kWh',data:vals,borderColor:'#14B8A6',fill:true,backgroundColor:'rgba(20,184,166,0.08)',tension:.4,pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8B949E',font:{size:10}}},y:{ticks:{color:'#8B949E'},grid:{color:'#21262D'}}}}});
+  dc('asset');const ctx3=document.getElementById('c-asset');
+  if(ctx3) charts.asset=new Chart(ctx3,{type:'doughnut',data:{labels:['Active','Warning','Critical'],datasets:[{data:[assets.filter(a=>a.status==='active').length,assets.filter(a=>a.status==='warning').length,assets.filter(a=>a.status==='critical').length],backgroundColor:['#22C55E','#EAB308','#EF4444'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8B949E',font:{size:10}}}}}});
+  const el=document.getElementById('tenant-occ-list');
+  if(el) el.innerHTML=tenants.slice(0,4).map(t=>`<div class="metric-row"><span style="font-size:11px">${t.name}</span><span class="badge bg-green">${fmtCurr(t.rent)}/mo</span></div>`).join('');
+  const al=document.getElementById('alerts-dash');
+  if(al) al.innerHTML=[...(openWR.filter(w=>w.priority==='critical'||w.priority==='high').slice(0,2).map(w=>`<div style="background:var(--red-dim);border-left:3px solid var(--red);border-radius:var(--r);padding:8px 12px;margin-bottom:6px;font-size:11px">🔴 WR — ${(w.description||w.desc||'').slice(0,50)}</div>`)),...(assets.filter(a=>a.status==='warning').slice(0,2).map(a=>`<div style="background:var(--yellow-dim);border-left:3px solid var(--yellow);border-radius:var(--r);padding:8px 12px;margin-bottom:6px;font-size:11px">🟡 ${a.name} — Warning</div>`))].slice(0,4).join('')||'<div class="t-muted" style="padding:16px;text-align:center;font-size:12px">✅ ไม่มีการแจ้งเตือน</div>';
+  localStorage.setItem('sbs_cm_assets',JSON.stringify(assets.length));
+  localStorage.setItem('sbs_cm_wo',JSON.stringify(openWR.length));
+};
+
+// ════════════════════════════════════════════════════
+//  WR ANALYTICS ENGINE
+// ════════════════════════════════════════════════════
+const MTTR_TARGET = {'Air Condition':4,'Electrical':2,'Electrical Services':2,'Lighting':1,'Lift / Escalator':2,'Toilet':3,'Building':8,'Cleaning':2,'Internet':4,'Kitchen':6,'Housekeeping':2,'Sanitary':3,'Project':24,'Other':8,'default':4};
+
+function calcMaintainability(mttr,target){if(!mttr||mttr<=0)return null;const T=target||MTTR_TARGET['default'];return(1-Math.exp(-T/mttr))*100;}
+function getMaintLevel(m){if(m===null||m===undefined)return{label:'N/A',cls:'bg-gray'};if(m>=90)return{label:'🟢 ดีมาก',cls:'bg-green'};if(m>=70)return{label:'🟡 พอใช้',cls:'bg-yellow'};return{label:'🔴 ปรับปรุง',cls:'bg-red'};}
+function parseDate(s){if(!s)return null;s=String(s);if(s.match(/^\d{2}-\d{2}-\d{4}$/)){const p=s.split('-');return new Date(p[2],p[1]-1,p[0]);}try{const d=new Date(s);return isNaN(d)?null:d;}catch{return null;}}
+function groupByKey(arr,key){const m={};arr.forEach(r=>{const k=(r[key]||'Unknown').toString().trim()||'Unknown';if(!m[k])m[k]=[];m[k].push(r);});return m;}
+function calcGroupStats(rows){const closed=rows.filter(r=>r.status==='closed');const withMttr=closed.filter(r=>parseFloat(r.mttrHours||r.mttr)>0);const totalMttr=withMttr.reduce((s,r)=>s+(parseFloat(r.mttrHours||r.mttr)||0),0);const avgMttr=withMttr.length?totalMttr/withMttr.length:null;return{total:rows.length,closed:closed.length,withMttr:withMttr.length,avgMttr,totalMttr};}
+
+function getAnalyticsData(){
+  const branch=document.getElementById('ana-branch')?.value||'';
+  const period=parseInt(document.getElementById('ana-period')?.value)||0;
+  let data=wrAllData.length?wrAllData:DB.get('wr',[]);
+  if(branch) data=data.filter(w=>(w.branchName||w.branch||'')===branch);
+  if(period>0){const cutoff=new Date(Date.now()-period*86400000);data=data.filter(w=>{const d=parseDate(w.openDate||w.date||'');return d&&d>=cutoff;});}
+  return data;
+}
+
+let currentAnaTab='branch';
+function switchAnaTab(tab,btn){
+  currentAnaTab=tab;
+  ['branch','issue','tech','trend','maintain'].forEach(t=>{const p=document.getElementById('ana-pane-'+t);if(p)p.style.display=t===tab?'':'none';});
+  document.querySelectorAll('#ana-tabs .tab').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  drawAnaCharts(tab);
+}
+
+function renderWRAnalytics(){
+  const branchEl=document.getElementById('ana-branch');
+  if(branchEl&&branchEl.options.length<=1){
+    const branches=new Set((wrAllData.length?wrAllData:DB.get('wr',[])).map(w=>w.branchName||w.branch||'').filter(Boolean));
+    [...branches].sort().forEach(b=>{const o=document.createElement('option');o.value=b;o.textContent=b;branchEl.appendChild(o);});
+  }
+  const data=getAnalyticsData();
+  const closed=data.filter(r=>r.status==='closed');
+  const withMttr=closed.filter(r=>parseFloat(r.mttrHours||r.mttr)>0);
+  const avgMttr=withMttr.length?withMttr.reduce((s,r)=>s+(parseFloat(r.mttrHours||r.mttr)||0),0)/withMttr.length:null;
+  document.getElementById('ana-mttr').textContent=avgMttr?avgMttr.toFixed(1)+'h':'—';
+  document.getElementById('ana-closed').textContent=closed.length.toLocaleString('th-TH');
+  const maint=calcMaintainability(avgMttr,4);
+  document.getElementById('ana-maint').textContent=maint?maint.toFixed(1)+'%':'—%';
+  const byTech=groupByKey(withMttr,'assignedTo');
+  let bestTech='—',bestMttr=9999;
+  Object.entries(byTech).forEach(([t,rows])=>{if(t==='Unknown'||!t)return;const avg=rows.reduce((s,r)=>s+(parseFloat(r.mttrHours||r.mttr)||0),0)/rows.length;if(avg<bestMttr){bestMttr=avg;bestTech=t.split(',')[0].trim().slice(0,20);}});
+  document.getElementById('ana-best-tech').textContent=bestTech+(bestMttr<9999?' ('+bestMttr.toFixed(1)+'h)':'');
+  const byIssue=groupByKey(withMttr,'issueType');
+  let worstIssue='—',worstMttr=0;
+  Object.entries(byIssue).forEach(([t,rows])=>{if(!t||t==='Unknown')return;const avg=rows.reduce((s,r)=>s+(parseFloat(r.mttrHours||r.mttr)||0),0)/rows.length;if(avg>worstMttr){worstMttr=avg;worstIssue=t;}});
+  document.getElementById('ana-worst').textContent=worstIssue+(worstMttr?' ('+worstMttr.toFixed(1)+'h)':'');
+  drawAnaCharts(currentAnaTab);
+}
+
+function drawAnaCharts(tab){
+  const data=getAnalyticsData();
+  const chartOpts=(horiz=false)=>({responsive:true,maintainAspectRatio:false,indexAxis:horiz?'y':'x',plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8B949E',font:{size:9}},grid:{color:'#21262D'}},y:{ticks:{color:'#8B949E',font:{size:9}},grid:{color:'#21262D'}}}});
+
+  if(tab==='branch'){
+    const byB=groupByKey(data,'branchName');
+    const entries=Object.entries(byB).map(([b,rows])=>{const s=calcGroupStats(rows);const m=calcMaintainability(s.avgMttr,MTTR_TARGET['default']);return{b,s,m};}).sort((a,b2)=>(b2.s.avgMttr||0)-(a.s.avgMttr||0)).slice(0,10);
+    const labels=entries.map(e=>e.b.length>18?e.b.slice(0,18)+'…':e.b);
+    dc('ana-branch-mttr');const c1=document.getElementById('c-ana-branch-mttr');
+    if(c1)charts['ana-branch-mttr']=new Chart(c1,{type:'bar',data:{labels,datasets:[{label:'MTTR (h)',data:entries.map(e=>e.s.avgMttr?.toFixed(1)||0),backgroundColor:entries.map(e=>(e.s.avgMttr||0)>8?'#EF4444':(e.s.avgMttr||0)>4?'#EAB308':'#22C55E'),borderRadius:4}]},options:{...chartOpts(true),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`MTTR: ${c.raw}h`}}}}});
+    dc('ana-branch-maint');const c2=document.getElementById('c-ana-branch-maint');
+    if(c2)charts['ana-branch-maint']=new Chart(c2,{type:'bar',data:{labels,datasets:[{label:'Maintainability %',data:entries.map(e=>e.m?.toFixed(1)||0),backgroundColor:entries.map(e=>(e.m||0)>=90?'#22C55E':(e.m||0)>=70?'#EAB308':'#EF4444'),borderRadius:4}]},options:{...chartOpts(true),scales:{x:{min:0,max:100,ticks:{color:'#8B949E',font:{size:9}},grid:{color:'#21262D'}},y:{ticks:{color:'#8B949E',font:{size:9}}}}}});
+    document.getElementById('ana-branch-tbody').innerHTML=Object.entries(byB).map(([b,rows])=>{const s=calcGroupStats(rows);const tgt=4;const m=calcMaintainability(s.avgMttr,tgt);const lv=getMaintLevel(m);return`<tr><td class="fw-6">${b}</td><td class="ff-m">${s.total}</td><td class="ff-m">${s.closed}</td><td class="ff-m t-orange">${s.avgMttr?s.avgMttr.toFixed(1)+'h':'—'}</td><td class="ff-m t-muted">${tgt}h</td><td><div class="progress" style="width:100px;display:inline-block;vertical-align:middle"><div class="progress-bar" style="width:${Math.min(m||0,100).toFixed(0)}%;background:${(m||0)>=90?'var(--green)':(m||0)>=70?'var(--yellow)':'var(--red)'}"></div></div> <span class="ff-m" style="font-size:11px">${m?m.toFixed(1)+'%':'—'}</span></td><td><span class="badge ${lv.cls}">${lv.label}</span></td></tr>`;}).join('');
+  }
+
+  if(tab==='issue'){
+    const byI=groupByKey(data,'issueType');
+    const entries=Object.entries(byI).map(([t,rows])=>{const s=calcGroupStats(rows);const tgt=MTTR_TARGET[t]||MTTR_TARGET['default'];const m=calcMaintainability(s.avgMttr,tgt);return{t,s,m,tgt};}).sort((a,b2)=>(b2.s.avgMttr||0)-(a.s.avgMttr||0)).slice(0,12);
+    dc('ana-issue-mttr');const c1=document.getElementById('c-ana-issue-mttr');
+    if(c1)charts['ana-issue-mttr']=new Chart(c1,{type:'bar',data:{labels:entries.map(e=>e.t),datasets:[{label:'MTTR (h)',data:entries.map(e=>e.s.avgMttr?.toFixed(1)||0),backgroundColor:'rgba(249,115,22,0.75)',borderRadius:4}]},options:{...chartOpts(true)}});
+    dc('ana-issue-maint');const c2=document.getElementById('c-ana-issue-maint');
+    if(c2)charts['ana-issue-maint']=new Chart(c2,{type:'bar',data:{labels:entries.map(e=>e.t),datasets:[{label:'Maintainability %',data:entries.map(e=>e.m?.toFixed(1)||0),backgroundColor:entries.map(e=>(e.m||0)>=90?'#22C55E':(e.m||0)>=70?'#EAB308':'#EF4444'),borderRadius:4}]},options:{...chartOpts(true),scales:{x:{min:0,max:100,ticks:{color:'#8B949E',font:{size:9}},grid:{color:'#21262D'}},y:{ticks:{color:'#8B949E',font:{size:9}}}}}});
+    document.getElementById('ana-issue-tbody').innerHTML=Object.entries(byI).map(([t,rows])=>{const s=calcGroupStats(rows);const tgt=MTTR_TARGET[t]||4;const m=calcMaintainability(s.avgMttr,tgt);const lv=getMaintLevel(m);return`<tr><td class="fw-6">${t}</td><td class="ff-m">${s.total}</td><td class="ff-m">${s.closed}</td><td class="ff-m t-orange">${s.avgMttr?s.avgMttr.toFixed(1)+'h':'—'}</td><td class="ff-m t-muted">${tgt}h</td><td><span class="ff-m">${m?m.toFixed(1)+'%':'—'}</span></td><td><span class="badge ${lv.cls}">${lv.label}</span></td></tr>`;}).join('');
+  }
+
+  if(tab==='tech'){
+    const withMttrData=data.filter(r=>parseFloat(r.mttrHours||r.mttr)>0);
+    const byT=groupByKey(withMttrData,'assignedTo');
+    const entries=Object.entries(byT).filter(([t])=>t&&t!=='Unknown').map(([t,rows])=>{const s=calcGroupStats(rows);const m=calcMaintainability(s.avgMttr,4);return{t:t.split(',')[0].trim().slice(0,25),s,m};}).sort((a,b2)=>(a.s.avgMttr||99)-(b2.s.avgMttr||99)).slice(0,15);
+    dc('ana-tech-mttr');const c1=document.getElementById('c-ana-tech-mttr');
+    if(c1)charts['ana-tech-mttr']=new Chart(c1,{type:'bar',data:{labels:entries.map(e=>e.t),datasets:[{label:'MTTR (h)',data:entries.map(e=>e.s.avgMttr?.toFixed(1)||0),backgroundColor:'rgba(59,130,246,0.75)',borderRadius:4}]},options:{...chartOpts(true)}});
+    const byTCount=groupByKey(data,'assignedTo');const cEntries=Object.entries(byTCount).filter(([t])=>t&&t!=='Unknown').sort((a,b2)=>b2[1].length-a[1].length).slice(0,15);
+    dc('ana-tech-count');const c2=document.getElementById('c-ana-tech-count');
+    if(c2)charts['ana-tech-count']=new Chart(c2,{type:'bar',data:{labels:cEntries.map(([t])=>t.split(',')[0].trim().slice(0,20)),datasets:[{label:'WR Count',data:cEntries.map(([,v])=>v.length),backgroundColor:'rgba(168,85,247,0.75)',borderRadius:4}]},options:{...chartOpts(true)}});
+    document.getElementById('ana-tech-tbody').innerHTML=entries.map(e=>{const lv=getMaintLevel(e.m);const perf=!e.s.avgMttr?'—':(e.s.avgMttr<2?'🥇 Excellent':e.s.avgMttr<4?'🥈 Good':e.s.avgMttr<8?'🥉 Average':'⚠ Need Improve');return`<tr><td class="fw-6">${e.t}</td><td class="ff-m">${e.s.total}</td><td class="ff-m">${e.s.closed}</td><td class="ff-m t-orange">${e.s.avgMttr?e.s.avgMttr.toFixed(1)+'h':'—'}</td><td><span class="ff-m">${e.m?e.m.toFixed(1)+'%':'—'}</span></td><td>${perf}</td></tr>`;}).join('');
+  }
+
+  if(tab==='trend'){
+    const monthly={};
+    data.forEach(r=>{const d=parseDate(r.openDate||r.date||'');if(!d)return;const m=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');if(!monthly[m])monthly[m]={sum:0,cnt:0,total:0};monthly[m].total++;const mv=parseFloat(r.mttrHours||r.mttr||0);if(mv>0){monthly[m].sum+=mv;monthly[m].cnt++;}});
+    const mKeys=Object.keys(monthly).sort().slice(-18);
+    dc('ana-trend');const c1=document.getElementById('c-ana-trend');
+    if(c1)charts['ana-trend']=new Chart(c1,{type:'line',data:{labels:mKeys.map(k=>{const p=k.split('-');return p[1]+'/'+p[0].slice(2);}),datasets:[{label:'Avg MTTR (h)',data:mKeys.map(k=>monthly[k].cnt?(monthly[k].sum/monthly[k].cnt).toFixed(1):null),borderColor:'#F97316',fill:false,tension:.4,pointRadius:4,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8B949E',font:{size:10}}}},scales:{x:{ticks:{color:'#8B949E',font:{size:9}}},y:{ticks:{color:'#8B949E'},grid:{color:'#21262D'}}}}});
+    dc('ana-vol');const c2=document.getElementById('c-ana-vol');
+    if(c2)charts['ana-vol']=new Chart(c2,{type:'bar',data:{labels:mKeys.map(k=>{const p=k.split('-');return p[1]+'/'+p[0].slice(2);}),datasets:[{label:'WR Count',data:mKeys.map(k=>monthly[k].total),backgroundColor:'rgba(20,184,166,0.7)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8B949E',font:{size:9}}},y:{ticks:{color:'#8B949E'},grid:{color:'#21262D'}}}}});
+  }
+
+  if(tab==='maintain'){
+    const byB=groupByKey(data,'branchName');
+    const bEntries=Object.entries(byB).map(([b,rows])=>{const s=calcGroupStats(rows);const m=calcMaintainability(s.avgMttr,4);return{b:b.slice(0,15),m:m||0};}).filter(e=>e.m>0).sort((a,b2)=>b2.m-a.m).slice(0,10);
+    dc('ana-gauge');const c1=document.getElementById('c-ana-gauge');
+    if(c1)charts['ana-gauge']=new Chart(c1,{type:'radar',data:{labels:bEntries.map(e=>e.b),datasets:[{label:'Maintainability %',data:bEntries.map(e=>e.m.toFixed(1)),backgroundColor:'rgba(34,197,94,0.15)',borderColor:'#22C55E',pointBackgroundColor:'#22C55E',pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8B949E',font:{size:10}}}},scales:{r:{min:0,max:100,ticks:{color:'#8B949E',stepSize:20},grid:{color:'#30363D'},pointLabels:{color:'#8B949E',font:{size:9}}}}}});
+    const barsEl=document.getElementById('ana-maint-bars');
+    if(barsEl)barsEl.innerHTML=bEntries.map(e=>`<div class="metric-row"><span style="font-size:12px;width:140px;display:inline-block">${e.b}</span><div class="progress" style="flex:1;margin:0 10px"><div class="progress-bar" style="width:${Math.min(e.m,100).toFixed(0)}%;background:${e.m>=90?'var(--green)':e.m>=70?'var(--yellow)':'var(--red)'}"></div></div><span class="ff-m" style="font-size:11px;width:45px;text-align:right">${e.m.toFixed(1)}%</span></div>`).join('');
+    const byIssue=groupByKey(data,'issueType');
+    document.getElementById('ana-sys-tbody').innerHTML=Object.entries(byIssue).map(([t,rows])=>{const s=calcGroupStats(rows);const tgt=MTTR_TARGET[t]||MTTR_TARGET['default'];const m=calcMaintainability(s.avgMttr,tgt);const lv=getMaintLevel(m);const cost=rows.reduce((sum,r)=>sum+(parseFloat(r.cost)||0),0);return`<tr><td class="fw-6">${t}</td><td class="ff-m">${s.total}</td><td class="ff-m">${s.totalMttr.toFixed(0)}</td><td class="ff-m t-orange">${s.avgMttr?s.avgMttr.toFixed(1):0}</td><td class="ff-m t-muted">${tgt}</td><td class="ff-m">${fmtCurr(cost)}</td><td><div class="progress" style="width:80px;display:inline-block;vertical-align:middle"><div class="progress-bar" style="width:${Math.min(m||0,100).toFixed(0)}%;background:${(m||0)>=90?'var(--green)':(m||0)>=70?'var(--yellow)':'var(--red)'}"></div></div> ${m?m.toFixed(1)+'%':'—'}</td><td><span class="badge ${lv.cls}">${lv.label}</span></td></tr>`;}).join('');
+  }
+}
+
+// ════ WR DETAIL MODAL ════
+function showWRDetail(id){
+  const w=wrAllData.find(x=>x.id===id||x.ticketNumber===id)||DB.get('wr',[]).find(x=>x.id===id);
+  if(!w){alert('ไม่พบข้อมูล');return;}
+  const priColor={high:'bg-red',normal:'bg-yellow',low:'bg-green',critical:'bg-red'};
+  const stColor={open:'bg-orange',inprog:'bg-blue',pending:'bg-yellow',closed:'bg-green',rejected:'bg-gray'};
+  const mttr=parseFloat(w.mttrHours||w.mttr||0);
+  const tgt=MTTR_TARGET[w.issueType]||MTTR_TARGET['default'];
+  const maint=calcMaintainability(mttr,tgt);
+  const maintLv=getMaintLevel(maint);
+  document.getElementById('wr-detail-content').innerHTML=`
+    <div class="grid-2 mb-12"><div><div class="form-label">Ticket / WR ID</div><span class="tag ff-m">${w.id||w.ticketNumber}</span></div><div><div class="form-label">สถานะ</div><span class="badge ${stColor[w.status]||'bg-gray'}">${w.status}</span></div></div>
+    <div class="grid-2 mb-12"><div><div class="form-label">Branch</div><span class="badge bg-blue">${w.branchName||w.branch||'—'}</span></div><div><div class="form-label">Issue Type</div><span class="badge bg-orange">${w.issueType||w.assetName||'—'}</span></div></div>
+    <div class="form-group"><div class="form-label">รายละเอียดปัญหา</div><div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;font-size:12px;line-height:1.6">${w.description||w.desc||'—'}</div></div>
+    <div class="grid-2 mb-12"><div><div class="form-label">ประเภทงาน</div><span class="badge bg-teal">${w.type||'—'}</span></div><div><div class="form-label">Priority</div><span class="badge ${priColor[w.priority]||'bg-gray'}">${w.priority||'—'}</span></div></div>
+    <div class="grid-2 mb-12"><div><div class="form-label">ผู้แจ้ง</div><div style="font-size:12px">${w.reportedBy||w.by||'—'} ${w.reporterPhone?'('+w.reporterPhone+')':''}</div></div><div><div class="form-label">ช่าง / Technician</div><div style="font-size:12px">${w.assignedTo||w.tech||'—'}</div></div></div>
+    <div class="grid-2 mb-12"><div><div class="form-label">วันที่แจ้ง</div><div class="ff-m" style="font-size:12px">${w.openDate||w.date||'—'}</div></div><div><div class="form-label">วันที่ปิด</div><div class="ff-m" style="font-size:12px">${w.closeDate||w.completeDate||'—'}</div></div></div>
+    ${w.completeDetail?`<div class="form-group"><div class="form-label">รายละเอียดการซ่อม</div><div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;font-size:12px;line-height:1.6">${w.completeDetail}</div></div>`:''}
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;margin-top:8px">
+      <div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">📐 MTTR & Maintainability</div>
+      <div class="grid-3">
+        <div style="text-align:center"><div class="kpi-label">MTTR จริง</div><div class="ff-d" style="font-size:24px;color:var(--orange)">${mttr>0?mttr.toFixed(1)+'h':'—'}</div></div>
+        <div style="text-align:center"><div class="kpi-label">Target MTTR</div><div class="ff-d" style="font-size:24px;color:var(--teal)">${tgt}h</div></div>
+        <div style="text-align:center"><div class="kpi-label">Maintainability</div><div class="ff-d" style="font-size:24px;color:${(maint||0)>=90?'var(--green)':(maint||0)>=70?'var(--yellow)':'var(--red)'}">${maint?maint.toFixed(1)+'%':'—'}</div></div>
+      </div>
+      ${maint?`<div class="progress mt-12"><div class="progress-bar" style="width:${Math.min(maint,100).toFixed(0)}%;background:${maint>=90?'var(--green)':maint>=70?'var(--yellow)':'var(--red)'}"></div></div><div style="text-align:center;margin-top:6px"><span class="badge ${maintLv.cls}">${maintLv.label}</span></div>`:''}
+    </div>
+    <div class="flex gap-8 mt-16" style="justify-content:flex-end">
+      ${w.status==='open'?`<button class="btn btn-secondary" onclick="updateWR('${w.id||w.ticketNumber}','inprog');closeModal('wrDetailModal')">▶ รับงาน</button>`:''}
+      ${w.status==='inprog'?`<button class="btn btn-success" onclick="closeWR('${w.id||w.ticketNumber}');closeModal('wrDetailModal')">✅ ปิดงาน</button>`:''}
+      <button class="btn btn-secondary" onclick="closeModal('wrDetailModal')">ปิด</button>
+    </div>`;
+  openModal('wrDetailModal');
+}
+
+function exportAnalytics(){const data=getAnalyticsData();const byB=groupByKey(data,'branchName');exportXLS(Object.entries(byB).map(([b,rows])=>{const s=calcGroupStats(rows);const m=calcMaintainability(s.avgMttr,4);return{Branch:b,Total:s.total,Closed:s.closed,'Avg MTTR (h)':s.avgMttr?s.avgMttr.toFixed(2):0,'Maintainability %':m?m.toFixed(2):0};}),'WR_Analytics_'+new Date().toISOString().split('T')[0]);}
+
+// Override renderWRTable เพิ่มปุ่ม 🔍 Detail
+renderWRTable = function(){
+  const start=(wrPage-1)*WR_PAGE_SIZE;const page=wrFiltered.slice(start,start+WR_PAGE_SIZE);
+  const priColor={high:'bg-red',normal:'bg-yellow',low:'bg-green',critical:'bg-red'};
+  const typeColor={CM:'bg-orange',PM:'bg-blue',PJ:'bg-purple',ER:'bg-red'};
+  const stColor={open:'bg-orange',inprog:'bg-blue',pending:'bg-yellow',closed:'bg-green',rejected:'bg-gray'};
+  const stLabel={open:'Open',inprog:'In Prog',pending:'Pending',closed:'Closed',rejected:'Rejected'};
+  document.getElementById('wr-tbody').innerHTML=page.map(w=>{
+    const id=w.id||w.ticketNumber||'—';const branch=w.branchName||w.branch||w.building||'—';
+    const desc=(w.description||w.desc||'—').slice(0,60);const date=w.openDate||w.date||'—';
+    const tech=w.assignedTo||w.tech||'—';const src=w.source==='Fixtab'?'<span class="tag" style="font-size:9px;color:var(--teal)">FX</span>':'';
+    return`<tr>
+      <td>${src}<span class="tag" style="font-size:10px">${id}</span></td>
+      <td><span class="badge bg-blue" style="font-size:10px">${branch}</span></td>
+      <td style="font-size:11px">${w.issueType||w.assetName||'—'}</td>
+      <td style="font-size:11px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${w.description||w.desc||''}">${desc}</td>
+      <td><span class="badge ${typeColor[w.type]||'bg-gray'}" style="font-size:10px">${w.type||'—'}</span></td>
+      <td><span class="badge ${priColor[w.priority]||'bg-gray'}" style="font-size:10px">${w.priority||'—'}</span></td>
+      <td style="font-size:11px">${w.reportedBy||w.by||'—'}</td>
+      <td style="font-size:11px">${date}</td>
+      <td style="font-size:11px">${tech}</td>
+      <td class="ff-m" style="font-size:11px">${w.mttrHours||w.mttr||'—'}</td>
+      <td><span class="badge ${stColor[w.status]||'bg-gray'}" style="font-size:10px">${stLabel[w.status]||w.status||'—'}</span></td>
+      <td><div class="flex gap-8">
+        <button class="btn btn-secondary btn-sm" onclick="showWRDetail('${id}')" title="รายละเอียด">🔍</button>
+        ${w.status==='open'?`<button class="btn btn-secondary btn-sm" onclick="updateWR('${id}','inprog')">▶</button>`:''}
+        ${w.status==='inprog'?`<button class="btn btn-success btn-sm" onclick="closeWR('${id}')">✅</button>`:''}
+        <button class="btn btn-danger btn-sm" onclick="deleteWR('${id}')">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="12" style="text-align:center;padding:24px;color:var(--text3)">ไม่พบข้อมูล</td></tr>';
+  renderWRPagination();
+};
+
+// Register wr-analytics ใน showView
+TITLES['wr-analytics']='WR Analytics (MTTR)';
+const _origShowView=showView;
+showView=function(name){
+  _origShowView(name);
+  if(name==='wr-analytics')renderWRAnalytics();
+};
 
 // ════ INIT ════
 seedData();
