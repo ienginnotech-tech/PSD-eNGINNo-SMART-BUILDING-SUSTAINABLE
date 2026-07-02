@@ -400,6 +400,7 @@ select.form-control option{background:var(--bg3)}
       </select>
       <input class="form-control btn-sm" id="wr-search" placeholder="🔍 ค้นหา..." style="width:140px" oninput="applyWRFilter()">
       <button class="btn btn-secondary btn-sm" onclick="loadWRFromSheets()">☁ โหลดจาก Sheets</button>
+      <button class="btn btn-secondary btn-sm" onclick="showCostSummary()">💰 Cost Summary</button>
       <button class="btn btn-secondary btn-sm" onclick="exportWR()">⬇ Export</button>
       <button class="btn btn-primary btn-sm" onclick="openModal('importFixtabModal')">📥 Import Fixtab</button>
       <button class="btn btn-primary btn-sm" onclick="openModal('addWRModal')">+ แจ้งซ่อม</button>
@@ -437,6 +438,30 @@ select.form-control option{background:var(--bg3)}
 
   <!-- Branch Summary Pills -->
   <div id="branch-pills" class="flex gap-8 flex-wrap mb-12"></div>
+
+  <!-- Cost Summary -->
+  <div id="wr-cost-section" class="mb-16" style="display:none">
+    <div class="card">
+      <div class="flex jb fc mb-12">
+        <div class="ff-d fw-6" style="font-size:14px">💰 Cost Summary — ค่าใช้จ่ายการซ่อม</div>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('wr-cost-section').style.display='none'">✕ ปิด</button>
+      </div>
+      <div class="kpi-grid-4 mb-12">
+        <div class="kpi teal"><div class="kpi-label">ค่าใช้จ่ายรวม</div><div class="kpi-value t-teal" style="font-size:20px" id="cost-total">฿0</div><div class="kpi-sub">ทุก Branch</div></div>
+        <div class="kpi orange"><div class="kpi-label">WR ที่มีต้นทุน</div><div class="kpi-value t-orange" id="cost-count">0</div><div class="kpi-sub">รายการ</div></div>
+        <div class="kpi blue"><div class="kpi-label">เฉลี่ย/ครั้ง</div><div class="kpi-value t-blue" style="font-size:20px" id="cost-avg">฿0</div><div class="kpi-sub">Average cost</div></div>
+        <div class="kpi red"><div class="kpi-label">Branch สูงสุด</div><div class="kpi-value t-red" style="font-size:14px" id="cost-top">—</div><div class="kpi-sub">ค่าซ่อมรวมสูงสุด</div></div>
+      </div>
+      <div class="grid-2">
+        <div><div class="ff-d fw-6" style="font-size:12px;margin-bottom:8px">💰 Cost by Branch</div>
+          <div class="table-wrap"><table><thead><tr><th>Branch</th><th>WR</th><th>มีต้นทุน</th><th>รวม (฿)</th><th>เฉลี่ย/ครั้ง (฿)</th></tr></thead><tbody id="cost-branch-tbody"></tbody></table></div>
+        </div>
+        <div><div class="ff-d fw-6" style="font-size:12px;margin-bottom:8px">🔧 Cost by Issue Type</div>
+          <div class="table-wrap"><table><thead><tr><th>Issue Type</th><th>WR</th><th>รวม (฿)</th><th>เฉลี่ย (฿)</th></tr></thead><tbody id="cost-issue-tbody"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Table -->
   <div class="table-wrap">
@@ -941,13 +966,95 @@ select.form-control option{background:var(--bg3)}
 
 <!-- ADD WR -->
 <div class="modal-overlay" id="addWRModal">
-  <div class="modal">
+  <div class="modal modal-lg">
     <div class="modal-hdr"><div class="modal-title">🔧 แจ้ง Work Request</div><button class="btn btn-secondary btn-sm" onclick="closeModal('addWRModal')">✕</button></div>
-    <div class="form-row"><div class="form-group"><label class="form-label">Asset *</label><select class="form-control" id="wr-asset"><option value="">-- เลือก Asset --</option></select></div><div class="form-group"><label class="form-label">ประเภท</label><select class="form-control" id="wr-type"><option value="ER">🚨 ER — Emergency</option><option value="CM">🔧 CM — Corrective</option><option value="PJ">🏗 PJ — Project</option></select></div></div>
+
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Branch *</label>
+        <select class="form-control" id="wr-branch" onchange="autoEstimateCost()">
+          <option value="">-- เลือก Branch --</option>
+          <option>BITEC BURI</option><option>BEAT ACTIVE</option><option>ES97 Space Journey</option>
+          <option>Venue - Banquet</option><option>Venue - CS</option><option>Venue - Front</option>
+          <option>Retail & Parking</option><option>Flexspace</option>
+          <option>Township-Building</option><option>Township-Maintenance</option>
+          <option>Township - BDM, Traffic, Fireman</option>
+          <option>About Food - GAYA</option><option>About Food - Kitchen</option><option>About Food - Stewards</option>
+          <option>Workplace - ENG, BD</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Issue Type *</label>
+        <select class="form-control" id="wr-issue-type" onchange="autoEstimateCost()">
+          <option value="">-- เลือก Issue Type --</option>
+          <option>Building</option><option>Toilet</option><option>Lighting</option><option>Kitchen</option>
+          <option>Electrical</option><option>Electrical Services</option><option>Air Condition</option>
+          <option>Playground equipment</option><option>Sanitary</option><option>เฟอร์นิเจอร์</option>
+          <option>Signage</option><option>Lift / Escalator</option><option>Housekeeping</option>
+          <option>Internet</option><option>Water Services</option><option>Vehicle</option>
+          <option>Food Court</option><option>Finger scan</option><option>Project</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Asset</label><select class="form-control" id="wr-asset"><option value="">-- เลือก Asset (ถ้ามี) --</option></select></div>
+      <div class="form-group"><label class="form-label">ประเภทงาน</label>
+        <select class="form-control" id="wr-type">
+          <option value="CM">🔧 CM — ซ่อมแซม</option>
+          <option value="PM">📅 PM — บำรุงรักษา</option>
+          <option value="PJ">🏗 PJ — ติดตั้ง/Project</option>
+          <option value="ER">🚨 ER — Emergency</option>
+        </select>
+      </div>
+    </div>
+
     <div class="form-group"><label class="form-label">รายละเอียดปัญหา *</label><textarea class="form-control" id="wr-desc" rows="3" placeholder="อธิบายปัญหา..."></textarea></div>
-    <div class="form-row"><div class="form-group"><label class="form-label">Priority</label><div class="flex gap-8 mt-4"><label style="cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px"><input type="radio" name="wr-pri" value="critical"> 🔴 Critical</label><label style="cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px"><input type="radio" name="wr-pri" value="high"> 🟡 High</label><label style="cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px"><input type="radio" name="wr-pri" value="normal" checked> 🟢 Normal</label></div></div><div class="form-group"><label class="form-label">ผู้แจ้ง</label><input class="form-control" id="wr-by" placeholder="ชื่อผู้แจ้ง"></div></div>
-    <div class="form-row"><div class="form-group"><label class="form-label">ช่าง/ทีม</label><input class="form-control" id="wr-tech" placeholder="ช่างผู้รับผิดชอบ"></div><div class="form-group"><label class="form-label">เบอร์โทร</label><input class="form-control" id="wr-phone" placeholder="0xx-xxx-xxxx"></div></div>
-    <div class="flex gap-8 mt-16" style="justify-content:flex-end"><button class="btn btn-secondary" onclick="closeModal('addWRModal')">ยกเลิก</button><button class="btn btn-primary" onclick="saveWR()">🔧 แจ้งซ่อม</button></div>
+
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Priority</label>
+        <div class="flex gap-8 mt-4">
+          <label style="cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px"><input type="radio" name="wr-pri" value="high"> 🔴 High</label>
+          <label style="cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px"><input type="radio" name="wr-pri" value="normal" checked> 🟡 Normal</label>
+          <label style="cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px"><input type="radio" name="wr-pri" value="low"> 🟢 Low</label>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">ผู้แจ้ง</label><input class="form-control" id="wr-by" placeholder="ชื่อผู้แจ้ง"></div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">ช่าง/ทีม</label><input class="form-control" id="wr-tech" placeholder="ช่างผู้รับผิดชอบ"></div>
+      <div class="form-group"><label class="form-label">เบอร์โทร</label><input class="form-control" id="wr-phone" placeholder="0xx-xxx-xxxx"></div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">💰 ค่าใช้จ่ายประเมิน (฿) <span style="color:var(--text3);font-weight:400">(ประเมินอัตโนมัติ แก้ไขได้)</span></label>
+        <div class="flex gap-8">
+          <input class="form-control ff-m" id="wr-cost" type="number" value="0" min="0" style="flex:1">
+          <button class="btn btn-secondary btn-sm" onclick="autoEstimateCost()" title="ประเมินใหม่">🔄 ประเมิน</button>
+        </div>
+        <div id="wr-cost-hint" style="font-size:10px;color:var(--text3);margin-top:4px"></div>
+      </div>
+      <div class="form-group"><label class="form-label">สถานะเริ่มต้น</label>
+        <select class="form-control" id="wr-init-status">
+          <option value="open">🟠 Open — รอดำเนินการ</option>
+          <option value="inprog">🔵 In Progress — กำลังซ่อม</option>
+          <option value="closed">🟢 Closed — เสร็จแล้ว</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="wr-close-fields" style="display:none">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">วันที่เสร็จ</label><input class="form-control" id="wr-close-date" type="date"></div>
+        <div class="form-group"><label class="form-label">MTTR จริง (ชั่วโมง)</label><input class="form-control ff-m" id="wr-mttr-input" type="number" step="0.5" value="0"></div>
+      </div>
+      <div class="form-group"><label class="form-label">รายละเอียดการซ่อม</label><textarea class="form-control" id="wr-complete-detail" rows="2" placeholder="สรุปการซ่อม..."></textarea></div>
+    </div>
+
+    <div class="flex gap-8 mt-16" style="justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('addWRModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveWR()">🔧 บันทึก Work Request</button>
+    </div>
   </div>
 </div>
 
@@ -1675,30 +1782,93 @@ function drawWRCharts(){
 }
 
 // ── SAVE WR (local + Sheets) ──
+// ════ COST ESTIMATION TABLE ════
+const COST_ESTIMATE = {
+  'Building':            {CM:2500,PM:1500,PJ:8000,ER:5000},
+  'Toilet':              {CM:1200,PM:800, PJ:3500,ER:2500},
+  'Lighting':            {CM:600, PM:400, PJ:2000,ER:1200},
+  'Kitchen':             {CM:3000,PM:2000,PJ:10000,ER:6000},
+  'Electrical':          {CM:2000,PM:1500,PJ:5000,ER:4000},
+  'Electrical Services': {CM:1800,PM:1200,PJ:4500,ER:3500},
+  'Air Condition':       {CM:3500,PM:2500,PJ:12000,ER:7000},
+  'Playground equipment':{CM:2000,PM:1000,PJ:5000,ER:3000},
+  'Sanitary':            {CM:1500,PM:1000,PJ:4000,ER:3000},
+  'เฟอร์นิเจอร์':         {CM:1500,PM:500, PJ:3000,ER:2000},
+  'Signage':             {CM:800, PM:300, PJ:2500,ER:1500},
+  'Lift / Escalator':    {CM:8000,PM:5000,PJ:20000,ER:15000},
+  'Housekeeping':        {CM:500, PM:300, PJ:1000,ER:800},
+  'Internet':            {CM:1000,PM:500, PJ:3000,ER:2000},
+  'Water Services':      {CM:1800,PM:1200,PJ:5000,ER:3500},
+  'Vehicle':             {CM:5000,PM:3000,PJ:15000,ER:8000},
+  'Food Court':          {CM:2000,PM:1500,PJ:6000,ER:4000},
+  'Finger scan':         {CM:2000,PM:1000,PJ:5000,ER:3000},
+  'Project':             {CM:10000,PM:5000,PJ:50000,ER:20000},
+  'Other':               {CM:1500,PM:800, PJ:4000,ER:2500},
+  'default':             {CM:1500,PM:800, PJ:4000,ER:2500},
+};
+
+function autoEstimateCost(){
+  const issueType=document.getElementById('wr-issue-type')?.value||'';
+  const wrType=document.getElementById('wr-type')?.value||'CM';
+  const costEl=document.getElementById('wr-cost');
+  const hintEl=document.getElementById('wr-cost-hint');
+  if(!issueType||!costEl)return;
+  const table=COST_ESTIMATE[issueType]||COST_ESTIMATE['default'];
+  const key=wrType==='PM'?'PM':wrType==='PJ'?'PJ':wrType==='ER'?'ER':'CM';
+  const est=table[key]||table['CM'];
+  costEl.value=est;
+  if(hintEl)hintEl.textContent=`💡 ประเมินจาก ${issueType} (${wrType}) — ปรับได้ตามจริง`;
+}
+
+document.addEventListener('change',function(e){
+  if(e.target.id==='wr-init-status'){
+    const f=document.getElementById('wr-close-fields');
+    if(f)f.style.display=e.target.value==='closed'?'':'none';
+  }
+  if(e.target.id==='wr-type')autoEstimateCost();
+});
+
 function saveWR(){
   const assets=DB.get('assets',[]);
   const assetId=document.getElementById('wr-asset').value;
   const asset=assets.find(a=>a.id===assetId);
   const pri=document.querySelector('input[name="wr-pri"]:checked')?.value||'normal';
+  const status=document.getElementById('wr-init-status')?.value||'open';
+  const cost=parseFloat(document.getElementById('wr-cost')?.value)||0;
+  const issueType=document.getElementById('wr-issue-type')?.value||'Other';
+  const branch=document.getElementById('wr-branch')?.value||currentBuilding;
+  const bm=BRANCH_MAP_FE[branch]||{module:'Commercial',building:'BHIRAJBURI'};
+  const mttrInput=parseFloat(document.getElementById('wr-mttr-input')?.value)||null;
+  const closeDate=document.getElementById('wr-close-date')?.value||'';
+  const completeDetail=document.getElementById('wr-complete-detail')?.value||'';
+  const desc=document.getElementById('wr-desc').value;
+  if(!desc){alert('กรุณากรอกรายละเอียดปัญหา');return;}
+  const now=new Date();
   const w={
-    id:genId('CM-WR'),ticketNumber:'',assetId,assetName:asset?.name||'—',
+    id:genId('CM-WR'),ticketNumber:'',
+    assetId,assetName:asset?.name||issueType||'—',
     type:document.getElementById('wr-type').value,
-    description:document.getElementById('wr-desc').value,
-    priority:pri,reportedBy:document.getElementById('wr-by').value||'Anonymous',
+    description:desc,priority:pri,
+    reportedBy:document.getElementById('wr-by').value||'Admin',
     reporterPhone:document.getElementById('wr-phone').value,
     assignedTo:document.getElementById('wr-tech').value,
-    branchName:currentBuilding,module:'Commercial',building:currentBuilding,
-    status:'open',openDate:new Date().toISOString().split('T')[0],
-    mttrHours:null,cost:0,source:'eNGINNo',createdAt:new Date().toISOString()
+    team:'',module:bm.module,building:bm.building,branchName:branch,
+    issueType,ticketType:'',status,
+    openDate:now.toISOString().split('T')[0],
+    openTime:now.toTimeString().slice(0,8),
+    closeDate:status==='closed'?(closeDate||now.toISOString().split('T')[0]):'',
+    closeTime:'',completeDetail,
+    mttrHours:status==='closed'?(mttrInput||null):null,
+    cost,source:'eNGINNo',createdAt:now.toISOString()
   };
-  if(!w.description){alert('กรุณากรอกรายละเอียดปัญหา');return;}
-  const wr=DB.get('wr',[]);
-  wr.unshift(w);DB.set('wr',wr);
-  wrAllData.unshift(w);
+  wrAllData.unshift(w);DB.set('wr',wrAllData);
   closeModal('addWRModal');
   applyWRFilter();drawWRCharts();
   syncToSheets('Work_Orders',w);
-  alert('✅ แจ้ง Work Request สำเร็จ: '+w.id);
+  ['wr-cost','wr-mttr-input'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=0;});
+  ['wr-by','wr-tech','wr-phone','wr-desc','wr-complete-detail'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['wr-branch','wr-asset','wr-issue-type'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  alert(`✅ บันทึก WR สำเร็จ!\nID: ${w.id}\nBranch: ${branch}\nต้นทุน: ${fmtCurr(cost)}`);
 }
 
 // ── UPDATE / CLOSE / DELETE ──
@@ -1741,10 +1911,44 @@ function switchImpTab(tab){
 }
 
 // Convert Fixtab row → SBS WO format
+function parseFixtabDT(dateStr, timeStr){
+  if(!dateStr) return null;
+  try{
+    const ds = String(dateStr).trim();
+    const ts = timeStr ? String(timeStr).trim() : '00:00:00';
+    // DD-MM-YYYY HH:MM:SS
+    const p = ds.split('-');
+    if(p.length===3 && p[2].length===4){
+      return new Date(parseInt(p[2]), parseInt(p[1])-1, parseInt(p[0]),
+        parseInt(ts.split(':')[0]||0), parseInt(ts.split(':')[1]||0), parseInt(ts.split(':')[2]||0));
+    }
+    return new Date(ds+' '+ts);
+  }catch(e){ return null; }
+}
+
+function computeMTTR(openDate, openTime, closeDate, closeTime){
+  const o = parseFixtabDT(openDate, openTime);
+  const c = parseFixtabDT(closeDate, closeTime);
+  if(!o||!c||c<=o) return null;
+  const h = (c-o)/3600000;
+  return (h>0 && h<720) ? parseFloat(h.toFixed(2)) : null;
+}
+
 function convertFixtabRow(r){
-  const branch=r['Branch Name']||r.branchName||'';
-  const bm=BRANCH_MAP_FE[branch]||{module:'Commercial',building:'BHIRAJBURI'};
-  const tn=r['Ticket Number']||r.ticketNumber||'';
+  const branch = r['Branch Name']||r.branchName||'';
+  const bm = BRANCH_MAP_FE[branch]||{module:'Commercial',building:'BHIRAJBURI'};
+  const tn = r['Ticket Number']||r.ticketNumber||'';
+  const status = FIXTAB_STATUS[r['Status Ticket']||r.status||'']||'open';
+
+  // คำนวณ MTTR จากวันที่จริง
+  const openDate  = r['Report Date']||r.openDate||'';
+  const openTime  = r['Report Time']||r.openTime||'';
+  const closeDate = r['Complete Date']||r.completeDate||'';
+  const closeTime = r['Complete Time']||r.closeTime||'';
+  const mttr = r.mttrHours!=null && r.mttrHours!=='' && parseFloat(r.mttrHours)>0
+    ? parseFloat(r.mttrHours)
+    : computeMTTR(openDate, openTime, closeDate, closeTime);
+
   return {
     id: 'FX-'+tn,
     ticketNumber: tn,
@@ -1760,15 +1964,29 @@ function convertFixtabRow(r){
     module: r.module||bm.module,
     building: r.building||bm.building,
     branchName: branch,
-    status: FIXTAB_STATUS[r['Status Ticket']||r.status||'']||'open',
-    openDate: r['Report Date']||r.openDate||'',
-    closeDate: r['Closed Task Date']||r.closeDate||'',
-    completeDate: r['Complete Date']||r.completeDate||'',
+    status,
+    openDate,
+    openTime,
+    closeDate,
+    closeTime,
     completeDetail: (r['Complete Detail']||r.completeDetail||'').replace(/_x000d_/g,'').trim().slice(0,150),
     issueType: r['Issue Type']||r.issueType||'',
     ticketType: r['Ticket Type']||r.ticketType||'',
-    mttrHours: '',cost:0,source:'Fixtab',
-    createdAt: r['Report Date']||r.openDate||new Date().toISOString().split('T')[0]
+    mttrHours: mttr,
+    cost: (()=>{
+      // ถ้ามี cost จากข้อมูลแล้ว ใช้ค่านั้น
+      if(r.cost!=null && parseFloat(r.cost)>0) return parseFloat(r.cost);
+      // ประเมินจาก COST_ESTIMATE
+      const iType = r['Issue Type']||r.issueType||'Other';
+      const tType = FIXTAB_TYPE[r['Ticket Type']||r.ticketType||'']||'CM';
+      const table = typeof COST_ESTIMATE !== 'undefined'
+        ? (COST_ESTIMATE[iType]||COST_ESTIMATE['default'])
+        : {CM:1500,PM:800,PJ:4000,ER:2500};
+      const key = tType==='PM'?'PM':tType==='PJ'?'PJ':tType==='ER'?'ER':'CM';
+      return table[key]||table['CM']||1500;
+    })(),
+    source: 'Fixtab',
+    createdAt: openDate||new Date().toISOString().split('T')[0]
   };
 }
 
@@ -2356,11 +2574,63 @@ refreshDash = function(){
 // ════════════════════════════════════════════════════
 //  WR ANALYTICS ENGINE
 // ════════════════════════════════════════════════════
-const MTTR_TARGET = {'Air Condition':4,'Electrical':2,'Electrical Services':2,'Lighting':1,'Lift / Escalator':2,'Toilet':3,'Building':8,'Cleaning':2,'Internet':4,'Kitchen':6,'Housekeeping':2,'Sanitary':3,'Project':24,'Other':8,'default':4};
+// Target MTTR (ชั่วโมง) — ตาม SLA ที่กำหนด
+const MTTR_TARGET = {
+  // ระบบวิกฤต — ต้องซ่อมเร็ว
+  'Electrical':8,'Electrical Services':8,'Lift / Escalator':4,
+  'Air Condition':24,'HVAC':24,
+  // งานทั่วไป
+  'Toilet':24,'Sanitary':24,'Plumbing':24,
+  'Lighting':12,'Building':48,
+  'Cleaning':8,'Housekeeping':8,
+  'Internet':12,'IT':12,
+  'Kitchen':24,'Food Court':24,
+  'Finger scan':8,
+  'Playground equipment':48,
+  'Project':168, // 1 week
+  'Other':48,
+  'default':48  // default 2 วัน
+};
 
 function calcMaintainability(mttr,target){if(!mttr||mttr<=0)return null;const T=target||MTTR_TARGET['default'];return(1-Math.exp(-T/mttr))*100;}
 function getMaintLevel(m){if(m===null||m===undefined)return{label:'N/A',cls:'bg-gray'};if(m>=90)return{label:'🟢 ดีมาก',cls:'bg-green'};if(m>=70)return{label:'🟡 พอใช้',cls:'bg-yellow'};return{label:'🔴 ปรับปรุง',cls:'bg-red'};}
-function parseDate(s){if(!s)return null;s=String(s);if(s.match(/^\d{2}-\d{2}-\d{4}$/)){const p=s.split('-');return new Date(p[2],p[1]-1,p[0]);}try{const d=new Date(s);return isNaN(d)?null:d;}catch{return null;}}
+function parseDate(s){
+  if(!s)return null;
+  s=String(s).trim();
+  // DD-MM-YYYY or DD-MM-YYYY HH:MM:SS
+  if(s.match(/^\d{2}-\d{2}-\d{4}/)){
+    const p=s.split('-');
+    return new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
+  }
+  try{const d=new Date(s);return isNaN(d)?null:d;}catch{return null;}
+}
+
+function showCostSummary(){
+  const sec=document.getElementById('wr-cost-section');
+  if(!sec)return;
+  sec.style.display='';
+  const data=wrFiltered.length?wrFiltered:wrAllData;
+  const withCost=data.filter(w=>parseFloat(w.cost)>0);
+  const total=withCost.reduce((s,w)=>s+(parseFloat(w.cost)||0),0);
+  const avg=withCost.length?total/withCost.length:0;
+  document.getElementById('cost-total').textContent=fmtCurr(total);
+  document.getElementById('cost-count').textContent=withCost.length.toLocaleString('th-TH');
+  document.getElementById('cost-avg').textContent=fmtCurr(avg);
+
+  // By Branch
+  const byB={};
+  data.forEach(w=>{const b=w.branchName||w.branch||'Unknown';if(!byB[b])byB[b]={total:0,count:0,cost:0};byB[b].total++;if(parseFloat(w.cost)>0){byB[b].count++;byB[b].cost+=parseFloat(w.cost);}});
+  const bSorted=Object.entries(byB).sort((a,b2)=>b2[1].cost-a[1].cost);
+  if(bSorted.length) document.getElementById('cost-top').textContent=bSorted[0][0].slice(0,15);
+  document.getElementById('cost-branch-tbody').innerHTML=bSorted.map(([b,v])=>`<tr><td class="fw-6" style="font-size:11px">${b}</td><td class="ff-m">${v.total}</td><td class="ff-m">${v.count}</td><td class="ff-m t-teal">${fmtCurr(v.cost)}</td><td class="ff-m">${v.count?fmtCurr(v.cost/v.count):'—'}</td></tr>`).join('');
+
+  // By Issue Type
+  const byI={};
+  data.forEach(w=>{const i=w.issueType||w.assetName||'Other';if(!byI[i])byI[i]={count:0,cost:0};byI[i].count++;byI[i].cost+=parseFloat(w.cost)||0;});
+  document.getElementById('cost-issue-tbody').innerHTML=Object.entries(byI).sort((a,b2)=>b2[1].cost-a[1].cost).slice(0,10).map(([i,v])=>`<tr><td class="fw-6" style="font-size:11px">${i}</td><td class="ff-m">${v.count}</td><td class="ff-m t-teal">${fmtCurr(v.cost)}</td><td class="ff-m">${v.count?fmtCurr(v.cost/v.count):'—'}</td></tr>`).join('');
+
+  sec.scrollIntoView({behavior:'smooth',block:'start'});
+}
 function groupByKey(arr,key){const m={};arr.forEach(r=>{const k=(r[key]||'Unknown').toString().trim()||'Unknown';if(!m[k])m[k]=[];m[k].push(r);});return m;}
 function calcGroupStats(rows){const closed=rows.filter(r=>r.status==='closed');const withMttr=closed.filter(r=>parseFloat(r.mttrHours||r.mttr)>0);const totalMttr=withMttr.reduce((s,r)=>s+(parseFloat(r.mttrHours||r.mttr)||0),0);const avgMttr=withMttr.length?totalMttr/withMttr.length:null;return{total:rows.length,closed:closed.length,withMttr:withMttr.length,avgMttr,totalMttr};}
 
