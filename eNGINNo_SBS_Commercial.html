@@ -179,6 +179,7 @@ select.form-control option{background:var(--bg3)}
   <div class="nav-item" onclick="showView('assets')"><span class="nav-icon">⚙</span>Asset Register (ALC)</div>
   <div class="nav-item" onclick="showView('wr')"><span class="nav-icon">🔧</span>Work Request (WR)<span class="nav-badge" id="nb-wr">0</span></div>
   <div class="nav-item" onclick="showView('wr-analytics')"><span class="nav-icon">📐</span>WR Analytics (MTTR)</div>
+  <div class="nav-item" onclick="showView('wr-cost')"><span class="nav-icon">💰</span>WR Cost Management</div>
   <div class="nav-item" onclick="showView('ppm')"><span class="nav-icon">📅</span>Preventive Maint. (PPM)</div>
   <div class="nav-item" onclick="showView('opm')"><span class="nav-icon">⚡</span>Operation (OPT/OEE)</div>
   <div class="nav-item" onclick="showView('ma')"><span class="nav-icon">📄</span>MA Contract</div>
@@ -407,6 +408,55 @@ select.form-control option{background:var(--bg3)}
     </div>
   </div>
 
+  <!-- ── DATE RANGE FILTER BAR ── -->
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;margin-bottom:10px">
+    <div class="flex gap-8 flex-wrap fc">
+      <span style="font-size:11px;font-weight:700;color:var(--text3);white-space:nowrap">📅 ช่วงเวลา:</span>
+
+      <!-- Quick Preset -->
+      <div class="flex gap-4 flex-wrap" id="wr-date-presets">
+        <button class="btn btn-secondary btn-sm" onclick="setWRDatePreset('today')" id="dp-today">วันนี้</button>
+        <button class="btn btn-secondary btn-sm" onclick="setWRDatePreset('week')" id="dp-week">สัปดาห์นี้</button>
+        <button class="btn btn-secondary btn-sm" onclick="setWRDatePreset('month')" id="dp-month">เดือนนี้</button>
+        <button class="btn btn-secondary btn-sm" onclick="setWRDatePreset('q1')" id="dp-q1">Q1</button>
+        <button class="btn btn-secondary btn-sm" onclick="setWRDatePreset('q2')" id="dp-q2">Q2</button>
+        <button class="btn btn-secondary btn-sm" onclick="setWRDatePreset('q3')" id="dp-q3">Q3</button>
+        <button class="btn btn-secondary btn-sm" onclick="setWRDatePreset('q4')" id="dp-q4">Q4</button>
+        <button class="btn btn-secondary btn-sm" onclick="setWRDatePreset('all')" id="dp-all" style="color:var(--orange);border-color:var(--orange)">ทั้งหมด</button>
+      </div>
+
+      <div style="width:1px;height:24px;background:var(--border)"></div>
+
+      <!-- Year -->
+      <select class="form-control btn-sm" id="wr-filter-year" style="width:90px" onchange="onWRYearChange()">
+        <option value="">ทุกปี</option>
+      </select>
+
+      <!-- Month -->
+      <select class="form-control btn-sm" id="wr-filter-month" style="width:110px" onchange="applyWRFilter()">
+        <option value="">ทุกเดือน</option>
+        <option value="01">มกราคม</option><option value="02">กุมภาพันธ์</option>
+        <option value="03">มีนาคม</option><option value="04">เมษายน</option>
+        <option value="05">พฤษภาคม</option><option value="06">มิถุนายน</option>
+        <option value="07">กรกฎาคม</option><option value="08">สิงหาคม</option>
+        <option value="09">กันยายน</option><option value="10">ตุลาคม</option>
+        <option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
+      </select>
+
+      <div style="width:1px;height:24px;background:var(--border)"></div>
+
+      <!-- Custom Range -->
+      <span style="font-size:11px;color:var(--text3);white-space:nowrap">กำหนดเอง:</span>
+      <input class="form-control btn-sm ff-m" id="wr-date-from" type="date" style="width:130px" onchange="clearWRPreset();applyWRFilter()">
+      <span style="font-size:11px;color:var(--text3)">ถึง</span>
+      <input class="form-control btn-sm ff-m" id="wr-date-to" type="date" style="width:130px" onchange="clearWRPreset();applyWRFilter()">
+      <button class="btn btn-secondary btn-sm" onclick="clearWRDateFilter()" title="ล้าง date filter">✕</button>
+
+      <!-- Active filter display -->
+      <span id="wr-date-label" style="font-size:11px;color:var(--orange);font-weight:600;white-space:nowrap"></span>
+    </div>
+  </div>
+
   <!-- Data Source Indicator -->
   <div id="wr-source-bar" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;font-size:11px">
     <div class="flex gap-8 fc">
@@ -582,6 +632,55 @@ select.form-control option{background:var(--bg3)}
     </div>
     <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">📋 Summarize System Efficiency</div>
       <div class="table-wrap"><table><thead><tr><th>System/Type</th><th>Count</th><th>Time (h)</th><th>MTTR (h/ครั้ง)</th><th>Target (h)</th><th>Cost (฿)</th><th>Maintainability</th><th>ระดับ</th></tr></thead><tbody id="ana-sys-tbody"></tbody></table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ WR COST MANAGEMENT ══════════ -->
+<div id="view-wr-cost" class="view">
+  <div class="section-hdr">
+    <div><div class="section-title">💰 WR Cost Management</div><div class="section-sub">ค่าใช้จ่ายการซ่อมบำรุง · แยกตาม Branch · Man-power · อะไหล่</div></div>
+    <div class="flex gap-8">
+      <select class="form-control btn-sm" id="wrc-branch" style="width:180px" onchange="renderWRCost()"><option value="">ทุก Branch</option></select>
+      <button class="btn btn-secondary btn-sm" onclick="exportWRCost()">⬇ Export</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('addWRCostModal')">+ บันทึกค่าใช้จ่าย</button>
+    </div>
+  </div>
+
+  <!-- KPI Summary -->
+  <div class="kpi-grid">
+    <div class="kpi teal"><div class="kpi-label">มูลค่ารวมทั้งหมด</div><div class="kpi-value t-teal" style="font-size:20px" id="wrc-total">฿0</div><div class="kpi-sub">All Branches</div></div>
+    <div class="kpi orange"><div class="kpi-label">ค่าแรงรวม</div><div class="kpi-value t-orange" style="font-size:20px" id="wrc-labor">฿0</div><div class="kpi-sub">Labor Cost</div></div>
+    <div class="kpi blue"><div class="kpi-label">ค่าอะไหล่รวม</div><div class="kpi-value t-blue" style="font-size:20px" id="wrc-parts">฿0</div><div class="kpi-sub">Parts & Materials</div></div>
+    <div class="kpi purple"><div class="kpi-label">ค่าเดินทาง+บริหาร</div><div class="kpi-value t-purple" style="font-size:20px" id="wrc-other">฿0</div><div class="kpi-sub">Travel + Admin</div></div>
+    <div class="kpi green"><div class="kpi-label">จำนวน WR (มีต้นทุน)</div><div class="kpi-value t-green" id="wrc-count">0</div><div class="kpi-sub">รายการที่บันทึกแล้ว</div></div>
+  </div>
+
+  <!-- Charts -->
+  <div class="grid-2 mb-16">
+    <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">💰 Cost by Branch</div><div class="chart-wrap" style="height:220px"><canvas id="c-wrc-branch"></canvas></div></div>
+    <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">🔧 Cost Breakdown</div><div class="chart-wrap" style="height:220px"><canvas id="c-wrc-breakdown"></canvas></div></div>
+  </div>
+
+  <!-- Branch Summary -->
+  <div class="card mb-16">
+    <div class="ff-d fw-6" style="font-size:13px;margin-bottom:12px">📊 Cost Summary by Branch</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Branch</th><th>WR ทั้งหมด</th><th>Man-power</th><th>ค่าแรง (฿)</th><th>ค่าเดินทาง (฿)</th><th>ค่าบริหาร (฿)</th><th>ค่าอะไหล่ (฿)</th><th>มูลค่ารวม (฿)</th><th>เฉลี่ย/WR (฿)</th></tr></thead>
+        <tbody id="wrc-branch-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Detail Table -->
+  <div class="card">
+    <div class="ff-d fw-6" style="font-size:13px;margin-bottom:12px">📋 รายการค่าใช้จ่าย (Cost Records)</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Ticket/WR ID</th><th>Branch</th><th>Issue Type</th><th>วันที่</th><th>Man-power</th><th>ค่าแรง (฿)</th><th>ค่าเดินทาง (฿)</th><th>ค่าบริหาร (฿)</th><th>ค่าอะไหล่ (฿)</th><th>รวม (฿)</th><th>หมายเหตุ</th><th>Action</th></tr></thead>
+        <tbody id="wrc-detail-tbody"></tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -1149,9 +1248,31 @@ select.form-control option{background:var(--bg3)}
 
     <!-- Excel Pane -->
     <div id="imp-pane-excel" style="display:none">
+      <!-- Import Mode -->
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:12px">
+        <div class="form-label" style="margin-bottom:8px">⚙ Import Mode</div>
+        <div class="flex gap-8 flex-wrap">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:6px 12px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg4)">
+            <input type="radio" name="imp-mode" value="addnew" checked> ➕ เพิ่มเฉพาะใหม่ (ไม่ซ้ำ Ticket ID)
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:6px 12px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg4)">
+            <input type="radio" name="imp-mode" value="update"> 🔄 เพิ่มใหม่ + อัปเดตที่เปลี่ยน
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:6px 12px;border-radius:var(--r);border:1px solid var(--orange);background:var(--orange-dim);color:var(--orange)">
+            <input type="radio" name="imp-mode" value="replace"> 🔄 แทนที่ทั้งหมด (ลบเก่า + ใส่ใหม่)
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:6px 12px;border-radius:var(--r);border:1px solid var(--blue);background:var(--blue-dim);color:var(--blue)">
+            <input type="radio" name="imp-mode" value="daterange"> 📅 แทนตามช่วงวันที่ (ลบ+ใส่เฉพาะช่วง)
+          </label>
+        </div>
+        <div id="imp-current-count" style="margin-top:8px;font-size:11px;color:var(--text3)">
+          📦 ข้อมูลปัจจุบันใน localStorage: <span id="imp-cur-count" style="color:var(--orange);font-weight:700">0</span> รายการ
+          <button class="btn btn-danger btn-sm" style="margin-left:12px" onclick="clearAllWR()">🗑 ล้างทั้งหมด</button>
+        </div>
+      </div>
+
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px;margin-bottom:12px;font-size:11px;color:var(--text3)">
-        📊 Upload ไฟล์ Fixtab Export (.xlsx) ระบบจะแปลงและ Import เข้า Google Sheets อัตโนมัติ<br>
-        Sheet ที่รองรับ: <span class="tag">Ticket Report</span>
+        📊 Upload ไฟล์ Fixtab Export (.xlsx) — Sheet: <span class="tag">Ticket Report</span>
       </div>
       <div style="border:2px dashed var(--border2);border-radius:var(--r-lg);padding:32px;text-align:center;cursor:pointer;background:var(--bg3)" onclick="document.getElementById('imp-file').click()" id="drop-zone">
         <div style="font-size:32px;margin-bottom:8px">📁</div>
@@ -1193,6 +1314,57 @@ select.form-control option{background:var(--bg3)}
           </tbody>
         </table></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- WR COST MODAL -->
+<div class="modal-overlay" id="addWRCostModal">
+  <div class="modal modal-lg">
+    <div class="modal-hdr"><div class="modal-title">💰 บันทึกค่าใช้จ่าย WR</div><button class="btn btn-secondary btn-sm" onclick="closeModal('addWRCostModal')">✕</button></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Ticket / WR ID *</label><input class="form-control ff-m" id="wrc-ticket-id" placeholder="FX-TIC12345 หรือ CM-WR-00001" oninput="autoFillWRCost(this.value)"></div>
+      <div class="form-group"><label class="form-label">Branch</label><input class="form-control" id="wrc-branch-inp" placeholder="(อัตโนมัติจาก Ticket ID)" readonly style="color:var(--text3)"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Issue Type</label><input class="form-control" id="wrc-issue-inp" placeholder="(อัตโนมัติ)" readonly style="color:var(--text3)"></div>
+      <div class="form-group"><label class="form-label">วันที่บันทึก</label><input class="form-control" id="wrc-date" type="date"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">👷 จำนวน Man-power (คน)</label><input class="form-control ff-m" id="wrc-manpower" type="number" value="1" min="0" oninput="calcWRCostTotal()"></div>
+      <div class="form-group"><label class="form-label">💵 ค่าแรง (฿)</label><input class="form-control ff-m" id="wrc-labor-inp" type="number" value="0" min="0" oninput="calcWRCostTotal()"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">🚗 ค่าเดินทาง (฿)</label><input class="form-control ff-m" id="wrc-travel" type="number" value="0" min="0" oninput="calcWRCostTotal()"></div>
+      <div class="form-group"><label class="form-label">📋 ค่าบริหารจัดการ (฿)</label><input class="form-control ff-m" id="wrc-admin" type="number" value="0" min="0" oninput="calcWRCostTotal()"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">🔩 ค่าอะไหล่/วัสดุ (฿)</label><input class="form-control ff-m" id="wrc-parts-inp" type="number" value="0" min="0" oninput="calcWRCostTotal()"></div>
+      <div class="form-group">
+        <label class="form-label">💰 มูลค่ารวม (฿)</label>
+        <div class="form-control ff-m" id="wrc-total-disp" style="background:var(--bg4);color:var(--teal);font-size:16px;font-weight:700;padding:8px 12px">฿0</div>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">หมายเหตุ</label><textarea class="form-control" id="wrc-note" rows="2" placeholder="รายละเอียดเพิ่มเติม..."></textarea></div>
+    <div class="flex gap-8 mt-16" style="justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('addWRCostModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveWRCost()">💾 บันทึกค่าใช้จ่าย</button>
+    </div>
+  </div>
+</div>
+
+<!-- PENDING DETAIL MODAL -->
+<div class="modal-overlay" id="pendingDetailModal">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">⏸ เหตุผล Pending</div><button class="btn btn-secondary btn-sm" onclick="closeModal('pendingDetailModal')">✕</button></div>
+    <input type="hidden" id="pend-wr-id">
+    <div class="form-group"><label class="form-label">Ticket / WR ID</label><div class="tag ff-m" id="pend-wr-display">—</div></div>
+    <div class="form-group"><label class="form-label">ผู้ Pending</label><input class="form-control" id="pend-user" placeholder="ชื่อผู้บันทึก"></div>
+    <div class="form-group"><label class="form-label">เหตุผล Pending *</label><textarea class="form-control" id="pend-detail" rows="4" placeholder="รายละเอียดเหตุผลที่ Pending เช่น รออะไหล่, รอผู้รับเหมา, รออนุมัติงบ..."></textarea></div>
+    <div class="form-group"><label class="form-label">วันที่คาดว่าจะดำเนินการต่อ</label><input class="form-control" id="pend-resume-date" type="date"></div>
+    <div class="flex gap-8 mt-16" style="justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('pendingDetailModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="savePendingDetail()">⏸ บันทึก Pending</button>
     </div>
   </div>
 </div>
@@ -1634,23 +1806,151 @@ function updateWRSource(src, count){
 }
 
 // ── FILTER & RENDER TABLE ──
+// ════ DATE FILTER FUNCTIONS ════
+function parseWRDate(s){
+  if(!s) return null;
+  s=String(s).trim();
+  // DD-MM-YYYY
+  if(s.match(/^\d{2}-\d{2}-\d{4}/)){
+    const p=s.split('-');
+    return new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
+  }
+  try{const d=new Date(s);return isNaN(d)?null:d;}catch{return null;}
+}
+
+function wrDateStr(w){
+  // Return comparable string YYYY-MM-DD from any date format
+  const d=w.openDate||w.date||'';
+  if(!d) return '';
+  const s=String(d).trim();
+  if(s.match(/^\d{2}-\d{2}-\d{4}/)){
+    const p=s.split('-');
+    return p[2]+'-'+p[1]+'-'+p[0]; // YYYY-MM-DD
+  }
+  return s.slice(0,10);
+}
+
+function populateYearFilter(){
+  const el=document.getElementById('wr-filter-year');
+  if(!el||el.options.length>1) return;
+  const years=new Set();
+  (wrAllData.length?wrAllData:DB.get('wr',[])).forEach(w=>{
+    const d=wrDateStr(w);
+    if(d) years.add(d.slice(0,4));
+  });
+  [...years].sort().reverse().forEach(y=>{
+    const o=document.createElement('option');o.value=y;o.textContent=y+' (พ.ศ. '+(parseInt(y)+543)+')';el.appendChild(o);
+  });
+}
+
+function onWRYearChange(){
+  // Clear month if year cleared
+  if(!document.getElementById('wr-filter-year')?.value){
+    const m=document.getElementById('wr-filter-month');if(m)m.value='';
+  }
+  clearWRPreset();
+  applyWRFilter();
+}
+
+function setWRDatePreset(preset){
+  const now=new Date();
+  const y=now.getFullYear();
+  const m=now.getMonth()+1;
+  const pad=n=>String(n).padStart(2,'0');
+  let from='',to='',label='';
+
+  // Clear year/month dropdowns
+  const yEl=document.getElementById('wr-filter-year');if(yEl)yEl.value='';
+  const mEl=document.getElementById('wr-filter-month');if(mEl)mEl.value='';
+
+  if(preset==='all'){from='';to='';label='';}
+  else if(preset==='today'){
+    const ds=`${y}-${pad(m)}-${pad(now.getDate())}`;from=ds;to=ds;label='วันนี้';
+  }
+  else if(preset==='week'){
+    const day=now.getDay()||7;
+    const mon=new Date(now);mon.setDate(now.getDate()-day+1);
+    const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+    from=mon.toISOString().split('T')[0];to=sun.toISOString().split('T')[0];label='สัปดาห์นี้';
+  }
+  else if(preset==='month'){
+    from=`${y}-${pad(m)}-01`;
+    to=`${y}-${pad(m)}-${pad(new Date(y,m,0).getDate())}`;
+    label='เดือนนี้';
+  }
+  else if(preset==='q1'){from=`${y}-01-01`;to=`${y}-03-31`;label=`Q1 ${y}`;}
+  else if(preset==='q2'){from=`${y}-04-01`;to=`${y}-06-30`;label=`Q2 ${y}`;}
+  else if(preset==='q3'){from=`${y}-07-01`;to=`${y}-09-30`;label=`Q3 ${y}`;}
+  else if(preset==='q4'){from=`${y}-10-01`;to=`${y}-12-31`;label=`Q4 ${y}`;}
+
+  const fEl=document.getElementById('wr-date-from');if(fEl)fEl.value=from;
+  const tEl=document.getElementById('wr-date-to');if(tEl)tEl.value=to;
+  const lEl=document.getElementById('wr-date-label');if(lEl)lEl.textContent=label?`🗓 ${label}`:'';
+
+  // Highlight active preset
+  document.querySelectorAll('#wr-date-presets button').forEach(b=>b.classList.remove('btn-primary'));
+  if(preset!=='all'){const el=document.getElementById('dp-'+preset);if(el)el.classList.add('btn-primary');}
+
+  applyWRFilter();
+}
+
+function clearWRPreset(){
+  document.querySelectorAll('#wr-date-presets button').forEach(b=>b.classList.remove('btn-primary'));
+}
+
+function clearWRDateFilter(){
+  ['wr-date-from','wr-date-to'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['wr-filter-year','wr-filter-month'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const lEl=document.getElementById('wr-date-label');if(lEl)lEl.textContent='';
+  clearWRPreset();
+  applyWRFilter();
+}
+
 function applyWRFilter(){
-  wrPage = 1;
+  wrPage=1;
+  // Populate year dropdown ครั้งแรก
+  populateYearFilter();
+
   const branch   = document.getElementById('wr-filter-branch')?.value||'';
   const status   = document.getElementById('wr-filter-status')?.value||'';
   const priority = document.getElementById('wr-filter-priority')?.value||'';
   const type     = document.getElementById('wr-filter-type')?.value||'';
   const search   = (document.getElementById('wr-search')?.value||'').toLowerCase();
+  const year     = document.getElementById('wr-filter-year')?.value||'';
+  const month    = document.getElementById('wr-filter-month')?.value||'';
+  const dateFrom = document.getElementById('wr-date-from')?.value||'';
+  const dateTo   = document.getElementById('wr-date-to')?.value||'';
+
+  // Update date label for year/month mode
+  if(year||month){
+    const lEl=document.getElementById('wr-date-label');
+    if(lEl){
+      const thYear=year?parseInt(year)+543:'';
+      const mNames=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+      const mLabel=month?mNames[parseInt(month)]:'';
+      lEl.textContent=`🗓 ${mLabel} ${thYear}`.trim();
+    }
+  }
 
   wrFiltered = wrAllData.filter(w=>{
-    if(branch   && (w.branchName||w.branch||'') !== branch) return false;
-    if(status   && w.status !== status) return false;
-    if(priority && w.priority !== priority) return false;
-    if(type     && w.type !== type) return false;
+    if(branch   && (w.branchName||w.branch||'')!==branch) return false;
+    if(status   && w.status!==status) return false;
+    if(priority && w.priority!==priority) return false;
+    if(type     && w.type!==type) return false;
     if(search){
-      const hay = [w.id,w.ticketNumber,w.description,w.desc,w.assetName,w.issueType,w.reportedBy,w.by,w.branchName].join(' ').toLowerCase();
+      const hay=[w.id,w.ticketNumber,w.description,w.desc,w.assetName,w.issueType,w.reportedBy,w.by,w.branchName,w.assignedTo].join(' ').toLowerCase();
       if(!hay.includes(search)) return false;
     }
+
+    // Date filtering
+    const ds=wrDateStr(w); // YYYY-MM-DD
+
+    if(year && !ds.startsWith(year)) return false;
+    if(month && !ds.startsWith((year||ds.slice(0,4))+'-'+month)) return false;
+
+    if(dateFrom && ds && ds<dateFrom) return false;
+    if(dateTo   && ds && ds>dateTo)   return false;
+
     return true;
   });
 
@@ -1974,9 +2274,7 @@ function convertFixtabRow(r){
     ticketType: r['Ticket Type']||r.ticketType||'',
     mttrHours: mttr,
     cost: (()=>{
-      // ถ้ามี cost จากข้อมูลแล้ว ใช้ค่านั้น
       if(r.cost!=null && parseFloat(r.cost)>0) return parseFloat(r.cost);
-      // ประเมินจาก COST_ESTIMATE
       const iType = r['Issue Type']||r.issueType||'Other';
       const tType = FIXTAB_TYPE[r['Ticket Type']||r.ticketType||'']||'CM';
       const table = typeof COST_ESTIMATE !== 'undefined'
@@ -1985,6 +2283,18 @@ function convertFixtabRow(r){
       const key = tType==='PM'?'PM':tType==='PJ'?'PJ':tType==='ER'?'ER':'CM';
       return table[key]||table['CM']||1500;
     })(),
+    // Pending fields
+    pendingDetail: (r['Pending Detail']||r.pendingDetail||'').replace(/_x000d_/g,'').trim().slice(0,300),
+    pendingDate:   r['Pending Date']||r.pendingDate||'',
+    pendingTime:   r['Pending Time']||r.pendingTime||'',
+    userPending:   r['User Pending']||r.userPending||'',
+    // Extra Fixtab fields
+    checkinDate:   r['Check-in Date']||'',
+    checkinTime:   r['Check-in Time']||'',
+    userCheckin:   r['User Check-in']||'',
+    closedTaskDetail: (r['Closed Task Detail']||'').slice(0,200),
+    closedTaskRating: r['Closed Task Rating']||'',
+    completeDetailTech: (r['Complete Detail By Technician']||'').replace(/_x000d_/g,'').trim().slice(0,200),
     source: 'Fixtab',
     createdAt: openDate||new Date().toISOString().split('T')[0]
   };
@@ -2040,38 +2350,126 @@ async function importFromExcel(){
   await doImport(converted, resEl);
 }
 
+// ── Show current count when open Import modal ──
+const _origOpenModal = openModal;
+openModal = function(id){
+  _origOpenModal(id);
+  if(id==='importFixtabModal'){
+    const el=document.getElementById('imp-cur-count');
+    if(el) el.textContent=(wrAllData.length||DB.get('wr',[]).length).toLocaleString('th-TH');
+  }
+};
+
+function clearAllWR(){
+  const count=wrAllData.length||DB.get('wr',[]).length;
+  if(!confirm(`⚠ ลบข้อมูล WR ทั้งหมด ${count.toLocaleString('th-TH')} รายการ?\n\nแนะนำ: Export ก่อนลบ เพื่อสำรองข้อมูล`)) return;
+  wrAllData=[];
+  DB.set('wr',[]);
+  DB.set('wr_last_sync',new Date().toISOString());
+  applyWRFilter();drawWRCharts();populateBranchFilter();
+  const el=document.getElementById('imp-cur-count');
+  if(el) el.textContent='0';
+  alert('✅ ล้างข้อมูล WR เรียบร้อย — พร้อม Import ชุดใหม่');
+}
+
+function getImportMode(){ return document.querySelector('input[name="imp-mode"]:checked')?.value||'addnew'; }
+
 async function doImport(converted, resEl){
   const url=GASURL();
-  // เก็บลง localStorage ก่อน (offline support)
-  const existing=new Set(wrAllData.map(w=>w.id));
-  const newRows=converted.filter(w=>!existing.has(w.id));
-  wrAllData=[...newRows,...wrAllData];
+  const mode=getImportMode();
+  resEl.innerHTML=`<div style="color:var(--text3)">⏳ Mode: <strong>${mode}</strong> · กำลังประมวลผล ${converted.length.toLocaleString('th-TH')} รายการ...</div>`;
+
+  let inserted=0, updated=0, skipped=0, deleted=0;
+  const toSync=[];
+
+  if(mode==='replace'){
+    // ══ แทนที่ทั้งหมด ══
+    deleted=wrAllData.length;
+    wrAllData=converted;
+    inserted=converted.length;
+    toSync.push(...converted);
+
+  } else if(mode==='daterange'){
+    // ══ แทนตามช่วงวันที่ในไฟล์ ══
+    const dates=converted.map(w=>w.openDate).filter(Boolean).sort();
+    const minDate=dates[0]||'';
+    const maxDate=dates[dates.length-1]||'';
+    // ลบ records ที่อยู่ในช่วงวันที่นี้ออกก่อน
+    const removed=wrAllData.filter(w=>{
+      const d=w.openDate||w.date||'';
+      return d>=minDate&&d<=maxDate;
+    });
+    deleted=removed.length;
+    wrAllData=wrAllData.filter(w=>{const d=w.openDate||w.date||'';return !(d>=minDate&&d<=maxDate);});
+    // เพิ่มชุดใหม่เข้าไป
+    wrAllData=[...converted,...wrAllData];
+    inserted=converted.length;
+    toSync.push(...converted);
+
+  } else if(mode==='update'){
+    // ══ เพิ่มใหม่ + อัปเดตที่เปลี่ยน ══
+    const existingMap={};
+    wrAllData.forEach(w=>{ existingMap[w.id]=w; });
+    converted.forEach(w=>{
+      if(existingMap[w.id]){
+        const old=existingMap[w.id];
+        const changed=old.status!==w.status||String(old.mttrHours)!==String(w.mttrHours)||old.completeDetail!==w.completeDetail||old.pendingDetail!==w.pendingDetail;
+        if(changed){
+          Object.assign(old,{status:w.status,mttrHours:w.mttrHours,closeDate:w.closeDate,completeDetail:w.completeDetail,pendingDetail:w.pendingDetail,pendingDate:w.pendingDate,userPending:w.userPending,cost:w.cost>0?w.cost:old.cost,updatedAt:new Date().toISOString()});
+          updated++;toSync.push(old);
+        } else { skipped++; }
+      } else {
+        existingMap[w.id]=w;inserted++;toSync.push(w);
+      }
+    });
+    wrAllData=Object.values(existingMap);
+
+  } else {
+    // ══ เพิ่มเฉพาะใหม่ (addnew) ══
+    const existingIds=new Set(wrAllData.map(w=>w.id));
+    converted.forEach(w=>{
+      if(!existingIds.has(w.id)){
+        wrAllData.push(w);
+        inserted++;
+        toSync.push(w);
+        existingIds.add(w.id);
+      } else { skipped++; }
+    });
+  }
+
   DB.set('wr',wrAllData);
   DB.set('wr_last_sync',new Date().toISOString());
   applyWRFilter();drawWRCharts();populateBranchFilter();
+  const el=document.getElementById('imp-cur-count');
+  if(el) el.textContent=wrAllData.length.toLocaleString('th-TH');
 
-  resEl.innerHTML=`<div style="color:var(--green)">✅ บันทึกลง localStorage สำเร็จ — ${newRows.length.toLocaleString('th-TH')} รายการใหม่ (ข้ามซ้ำ ${(converted.length-newRows.length).toLocaleString('th-TH')})</div>`;
+  const modeLabel={replace:'แทนที่ทั้งหมด',daterange:'แทนตามช่วงวันที่',update:'เพิ่ม+อัปเดต',addnew:'เพิ่มเฉพาะใหม่'};
+  resEl.innerHTML=`<div style="color:var(--green)">✅ ${modeLabel[mode]||mode} — เสร็จสิ้น<br>
+    ${deleted?`🗑 ลบ: <strong>${deleted.toLocaleString('th-TH')}</strong> รายการ<br>`:''}
+    📥 ใหม่: <strong>${inserted.toLocaleString('th-TH')}</strong> รายการ<br>
+    ${updated?`🔄 อัปเดต: <strong>${updated.toLocaleString('th-TH')}</strong> รายการ<br>`:''}
+    ${skipped?`⏭ ข้าม (ซ้ำ): <strong>${skipped.toLocaleString('th-TH')}</strong> รายการ<br>`:''}
+    📦 รวมทั้งหมดตอนนี้: <strong>${wrAllData.length.toLocaleString('th-TH')}</strong> รายการ
+  </div>`;
 
-  // Sync ขึ้น Google Sheets ถ้ามี URL
-  if(url && newRows.length>0){
+  // Sync ขึ้น Google Sheets
+  if(url && toSync.length>0){
     resEl.innerHTML+='<div style="color:var(--text3);margin-top:6px">⏳ กำลัง sync ขึ้น Google Sheets...</div>';
     try{
-      // แบ่ง batch 500 ต่อ request
-      const BATCH=500;let uploaded=0;
-      for(let i=0;i<newRows.length;i+=BATCH){
-        const batch=newRows.slice(i,i+BATCH);
+      const BATCH=500;let synced=0;
+      for(let i=0;i<toSync.length;i+=BATCH){
+        const batch=toSync.slice(i,i+BATCH);
         const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'importFixtab',rows:batch})});
-        const d=await r.json();
-        if(d.ok) uploaded+=d.inserted||0;
+        const d=await r.json();if(d.ok) synced+=(d.inserted||0)+(d.updated||0);
       }
-      resEl.innerHTML+=`<div style="color:var(--green);margin-top:4px">☁ Sync ขึ้น Sheets สำเร็จ: ${uploaded.toLocaleString('th-TH')} รายการ</div>`;
+      resEl.innerHTML+=`<div style="color:var(--green);margin-top:4px">☁ Sync Sheets สำเร็จ: ${synced.toLocaleString('th-TH')} รายการ</div>`;
     }catch(e){
-      resEl.innerHTML+=`<div style="color:var(--yellow);margin-top:4px">⚠ Sync ขึ้น Sheets ไม่สำเร็จ (ข้อมูลอยู่ใน localStorage แล้ว): ${e.message}</div>`;
+      resEl.innerHTML+=`<div style="color:var(--yellow);margin-top:4px">⚠ Sheets ไม่สำเร็จ: ${e.message}</div>`;
     }
   } else if(!url){
-    resEl.innerHTML+='<div style="color:var(--yellow);margin-top:4px">⚠ ยังไม่มี GAS URL — ข้อมูลอยู่ใน localStorage เท่านั้น</div>';
+    resEl.innerHTML+='<div style="color:var(--yellow);margin-top:4px">⚠ ยังไม่มี GAS URL</div>';
   }
-  closeModal('importFixtabModal');
+  setTimeout(()=>closeModal('importFixtabModal'),3000);
 }
 
 // ════ PPM ════
@@ -2809,15 +3207,250 @@ renderWRTable = function(){
 
 // Register wr-analytics ใน showView
 TITLES['wr-analytics']='WR Analytics (MTTR)';
+TITLES['wr-cost']='WR Cost Management';
 const _origShowView=showView;
 showView=function(name){
   _origShowView(name);
   if(name==='wr-analytics')renderWRAnalytics();
+  if(name==='wr-cost')renderWRCost();
+};
+
+// ════════════════════════════════════════════════════
+//  WR COST MANAGEMENT
+// ════════════════════════════════════════════════════
+const WRC_K = 'wrcosts_';
+const WRDB = {
+  get:(k,d)=>{ try{return JSON.parse(localStorage.getItem(WRC_K+k))??d;}catch{return d;} },
+  set:(k,v)=>localStorage.setItem(WRC_K+k, JSON.stringify(v)),
+};
+
+function renderWRCost(){
+  // Populate branch filter
+  const brEl=document.getElementById('wrc-branch');
+  if(brEl && brEl.options.length<=1){
+    const branches=new Set((wrAllData.length?wrAllData:DB.get('wr',[])).map(w=>w.branchName||w.branch||'').filter(Boolean));
+    [...branches].sort().forEach(b=>{const o=document.createElement('option');o.value=b;o.textContent=b;brEl.appendChild(o);});
+  }
+  const filterBranch=brEl?.value||'';
+  const costs=WRDB.get('costs',[]);
+  const filteredCosts=filterBranch?costs.filter(c=>c.branchName===filterBranch):costs;
+
+  // KPI
+  const totalAll=filteredCosts.reduce((s,c)=>s+(c.totalCost||0),0);
+  const totalLabor=filteredCosts.reduce((s,c)=>s+(c.labor||0),0);
+  const totalParts=filteredCosts.reduce((s,c)=>s+(c.parts||0),0);
+  const totalOther=filteredCosts.reduce((s,c)=>s+(c.travel||0)+(c.admin||0),0);
+  document.getElementById('wrc-total').textContent=fmtCurr(totalAll);
+  document.getElementById('wrc-labor').textContent=fmtCurr(totalLabor);
+  document.getElementById('wrc-parts').textContent=fmtCurr(totalParts);
+  document.getElementById('wrc-other').textContent=fmtCurr(totalOther);
+  document.getElementById('wrc-count').textContent=filteredCosts.length.toLocaleString('th-TH');
+
+  // Branch summary
+  const byB={};
+  const allWR=wrAllData.length?wrAllData:DB.get('wr',[]);
+  // count WR per branch
+  (filterBranch?allWR.filter(w=>(w.branchName||w.branch||'')=== filterBranch):allWR)
+    .forEach(w=>{const b=w.branchName||w.branch||'Unknown';if(!byB[b])byB[b]={count:0,manpower:0,labor:0,travel:0,admin:0,parts:0,total:0};byB[b].count++;});
+  filteredCosts.forEach(c=>{const b=c.branchName||'Unknown';if(!byB[b])byB[b]={count:0,manpower:0,labor:0,travel:0,admin:0,parts:0,total:0};byB[b].manpower+=(c.manpower||0);byB[b].labor+=(c.labor||0);byB[b].travel+=(c.travel||0);byB[b].admin+=(c.admin||0);byB[b].parts+=(c.parts||0);byB[b].total+=(c.totalCost||0);});
+  document.getElementById('wrc-branch-tbody').innerHTML=Object.entries(byB).sort((a,b2)=>b2[1].total-a[1].total).map(([b,v])=>`<tr>
+    <td class="fw-6">${b}</td><td class="ff-m">${v.count.toLocaleString('th-TH')}</td>
+    <td class="ff-m">${v.manpower||0}</td>
+    <td class="ff-m">${fmtCurr(v.labor)}</td>
+    <td class="ff-m">${fmtCurr(v.travel)}</td>
+    <td class="ff-m">${fmtCurr(v.admin)}</td>
+    <td class="ff-m">${fmtCurr(v.parts)}</td>
+    <td class="ff-m fw-6 t-teal">${fmtCurr(v.total)}</td>
+    <td class="ff-m">${v.count?fmtCurr(v.total/v.count):'—'}</td>
+  </tr>`).join('')||'<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--text3)">ยังไม่มีข้อมูล — กด "+ บันทึกค่าใช้จ่าย"</td></tr>';
+
+  // Detail table
+  document.getElementById('wrc-detail-tbody').innerHTML=filteredCosts.slice().reverse().map(c=>`<tr>
+    <td><span class="tag ff-m" style="font-size:10px">${c.ticketId}</span></td>
+    <td><span class="badge bg-blue" style="font-size:10px">${c.branchName||'—'}</span></td>
+    <td style="font-size:11px">${c.issueType||'—'}</td>
+    <td style="font-size:11px">${c.date||'—'}</td>
+    <td class="ff-m">${c.manpower||0} คน</td>
+    <td class="ff-m">${fmtCurr(c.labor)}</td>
+    <td class="ff-m">${fmtCurr(c.travel)}</td>
+    <td class="ff-m">${fmtCurr(c.admin)}</td>
+    <td class="ff-m">${fmtCurr(c.parts)}</td>
+    <td class="ff-m fw-6 t-teal">${fmtCurr(c.totalCost)}</td>
+    <td style="font-size:11px">${c.note||'—'}</td>
+    <td><button class="btn btn-danger btn-sm" onclick="deleteWRCost('${c.id}')">🗑</button></td>
+  </tr>`).join('')||'<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--text3)">ยังไม่มีข้อมูล</td></tr>';
+
+  // Charts
+  dc('wrc-branch');
+  const bData=Object.entries(byB).sort((a,b2)=>b2[1].total-a[1].total).slice(0,10);
+  const ctx1=document.getElementById('c-wrc-branch');
+  if(ctx1) charts['wrc-branch']=new Chart(ctx1,{type:'bar',data:{labels:bData.map(([b])=>b.slice(0,15)),datasets:[{label:'มูลค่ารวม',data:bData.map(([,v])=>v.total),backgroundColor:'rgba(20,184,166,0.75)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8B949E',font:{size:9}},grid:{color:'#21262D'}},y:{ticks:{color:'#8B949E',font:{size:9}}}}}});
+
+  dc('wrc-breakdown');
+  const ctx2=document.getElementById('c-wrc-breakdown');
+  if(ctx2) charts['wrc-breakdown']=new Chart(ctx2,{type:'doughnut',data:{labels:['ค่าแรง','ค่าเดินทาง','ค่าบริหาร','ค่าอะไหล่'],datasets:[{data:[totalLabor,totalOther/2,totalOther/2,totalParts],backgroundColor:['#F97316','#3B82F6','#A855F7','#22C55E'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8B949E',font:{size:10}}}}}});
+
+  // Update dashboard cost KPI
+  updateDashCostKPI();
+}
+
+function autoFillWRCost(ticketId){
+  const w=wrAllData.find(x=>x.id===ticketId||x.ticketNumber===ticketId);
+  if(w){
+    const el1=document.getElementById('wrc-branch-inp');const el2=document.getElementById('wrc-issue-inp');
+    if(el1)el1.value=w.branchName||w.branch||'—';
+    if(el2)el2.value=w.issueType||w.assetName||'—';
+    // ประเมินต้นทุนเริ่มต้น
+    const table=COST_ESTIMATE[w.issueType]||COST_ESTIMATE['default'];
+    const key=w.type==='PM'?'PM':w.type==='PJ'?'PJ':w.type==='ER'?'ER':'CM';
+    const est=table[key]||1500;
+    const laborEl=document.getElementById('wrc-labor-inp');if(laborEl&&(!laborEl.value||laborEl.value==='0'))laborEl.value=Math.round(est*0.5);
+    const partsEl=document.getElementById('wrc-parts-inp');if(partsEl&&(!partsEl.value||partsEl.value==='0'))partsEl.value=Math.round(est*0.4);
+    const travelEl=document.getElementById('wrc-travel');if(travelEl&&(!travelEl.value||travelEl.value==='0'))travelEl.value=Math.round(est*0.05);
+    const adminEl=document.getElementById('wrc-admin');if(adminEl&&(!adminEl.value||adminEl.value==='0'))adminEl.value=Math.round(est*0.05);
+    calcWRCostTotal();
+  }
+}
+
+function calcWRCostTotal(){
+  const labor=parseFloat(document.getElementById('wrc-labor-inp')?.value)||0;
+  const travel=parseFloat(document.getElementById('wrc-travel')?.value)||0;
+  const admin=parseFloat(document.getElementById('wrc-admin')?.value)||0;
+  const parts=parseFloat(document.getElementById('wrc-parts-inp')?.value)||0;
+  const total=labor+travel+admin+parts;
+  const el=document.getElementById('wrc-total-disp');
+  if(el)el.textContent=fmtCurr(total);
+}
+
+function saveWRCost(){
+  const ticketId=document.getElementById('wrc-ticket-id').value.trim();
+  if(!ticketId){alert('กรุณาใส่ Ticket/WR ID');return;}
+  const w=wrAllData.find(x=>x.id===ticketId||x.ticketNumber===ticketId);
+  const manpower=parseInt(document.getElementById('wrc-manpower')?.value)||0;
+  const labor=parseFloat(document.getElementById('wrc-labor-inp')?.value)||0;
+  const travel=parseFloat(document.getElementById('wrc-travel')?.value)||0;
+  const admin=parseFloat(document.getElementById('wrc-admin')?.value)||0;
+  const parts=parseFloat(document.getElementById('wrc-parts-inp')?.value)||0;
+  const total=labor+travel+admin+parts;
+  const c={
+    id:'COST-'+Date.now(),ticketId,
+    branchName:w?.branchName||w?.branch||document.getElementById('wrc-branch-inp')?.value||'',
+    issueType:w?.issueType||document.getElementById('wrc-issue-inp')?.value||'',
+    date:document.getElementById('wrc-date')?.value||new Date().toISOString().split('T')[0],
+    manpower,labor,travel,admin,parts,totalCost:total,
+    note:document.getElementById('wrc-note')?.value||'',
+    createdAt:new Date().toISOString()
+  };
+  const costs=WRDB.get('costs',[]);
+  costs.push(c);WRDB.set('costs',costs);
+  // Update WR cost field
+  if(w){w.cost=total;DB.set('wr',wrAllData);}
+  closeModal('addWRCostModal');
+  renderWRCost();
+  syncToSheets('WR_Costs',c);
+  alert(`✅ บันทึกค่าใช้จ่ายสำเร็จ!\nTicket: ${ticketId}\nมูลค่ารวม: ${fmtCurr(total)}`);
+}
+
+function deleteWRCost(id){
+  if(!confirm('ลบรายการค่าใช้จ่ายนี้?'))return;
+  WRDB.set('costs',WRDB.get('costs',[]).filter(c=>c.id!==id));
+  renderWRCost();
+}
+
+function exportWRCost(){
+  const costs=WRDB.get('costs',[]);
+  exportXLS(costs.map(c=>({'Ticket ID':c.ticketId,'Branch':c.branchName,'Issue Type':c.issueType,'วันที่':c.date,'Man-power':c.manpower,'ค่าแรง':c.labor,'ค่าเดินทาง':c.travel,'ค่าบริหาร':c.admin,'ค่าอะไหล่':c.parts,'มูลค่ารวม':c.totalCost,'หมายเหตุ':c.note})),'WR_Cost_'+new Date().toISOString().split('T')[0]);
+}
+
+function updateDashCostKPI(){
+  const costs=WRDB.get('costs',[]);
+  const total=costs.reduce((s,c)=>s+(c.totalCost||0),0);
+  // Update dashboard cost elements if exist
+  const el=document.getElementById('d-cost-total');
+  if(el)el.textContent=fmtCurr(total);
+}
+
+// ════════════════════════════════════════════════════
+//  PENDING DETAIL
+// ════════════════════════════════════════════════════
+function showPendingModal(id){
+  const w=wrAllData.find(x=>x.id===id||x.ticketNumber===id);
+  document.getElementById('pend-wr-id').value=id;
+  document.getElementById('pend-wr-display').textContent=id;
+  const detailEl=document.getElementById('pend-detail');
+  const userEl=document.getElementById('pend-user');
+  if(w?.pendingDetail && detailEl) detailEl.value=w.pendingDetail;
+  if(w?.userPending && userEl) userEl.value=w.userPending;
+  openModal('pendingDetailModal');
+}
+
+function savePendingDetail(){
+  const id=document.getElementById('pend-wr-id').value;
+  const detail=document.getElementById('pend-detail').value.trim();
+  const user=document.getElementById('pend-user').value.trim();
+  const resumeDate=document.getElementById('pend-resume-date').value;
+  if(!detail){alert('กรุณากรอกเหตุผล Pending');return;}
+  const i=wrAllData.findIndex(w=>w.id===id||w.ticketNumber===id);
+  if(i>=0){
+    wrAllData[i].status='pending';
+    wrAllData[i].pendingDetail=detail;
+    wrAllData[i].userPending=user||'Admin';
+    wrAllData[i].pendingDate=new Date().toISOString().split('T')[0];
+    wrAllData[i].pendingResumeDate=resumeDate;
+    DB.set('wr',wrAllData);
+    applyWRFilter();drawWRCharts();
+    syncToSheets('Work_Orders',{id,status:'pending',pendingDetail:detail,userPending:user,pendingDate:wrAllData[i].pendingDate});
+  }
+  closeModal('pendingDetailModal');
+  alert('✅ บันทึก Pending สำเร็จ\nเหตุผล: '+detail.slice(0,50));
+}
+
+// Override renderWRTable เพิ่มปุ่ม 🔍 Detail + ⏸ Pending
+renderWRTable = function(){
+  const start=(wrPage-1)*WR_PAGE_SIZE;const page=wrFiltered.slice(start,start+WR_PAGE_SIZE);
+  const priColor={high:'bg-red',normal:'bg-yellow',low:'bg-green',critical:'bg-red'};
+  const typeColor={CM:'bg-orange',PM:'bg-blue',PJ:'bg-purple',ER:'bg-red'};
+  const stColor={open:'bg-orange',inprog:'bg-blue',pending:'bg-yellow',closed:'bg-green',rejected:'bg-gray'};
+  const stLabel={open:'Open',inprog:'In Prog',pending:'Pending',closed:'Closed',rejected:'Rejected'};
+  document.getElementById('wr-tbody').innerHTML=page.map(w=>{
+    const id=w.id||w.ticketNumber||'—';const branch=w.branchName||w.branch||w.building||'—';
+    const desc=(w.description||w.desc||'—').slice(0,60);const date=w.openDate||w.date||'—';
+    const tech=(w.assignedTo||w.tech||'—').split(',')[0].trim().slice(0,20);
+    const src=w.source==='Fixtab'?'<span class="tag" style="font-size:9px;color:var(--teal)">FX</span>':'';
+    const hasPend=w.pendingDetail?`<span title="${w.pendingDetail}" style="font-size:10px;color:var(--yellow);cursor:help">📋</span>`:'';
+    return`<tr style="${w.status==='pending'?'background:rgba(234,179,8,0.05)':''}">
+      <td>${src}<span class="tag" style="font-size:10px">${id}</span>${hasPend}</td>
+      <td><span class="badge bg-blue" style="font-size:10px">${branch}</span></td>
+      <td style="font-size:11px">${w.issueType||w.assetName||'—'}</td>
+      <td style="font-size:11px;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${w.description||w.desc||''}">${desc}</td>
+      <td><span class="badge ${typeColor[w.type]||'bg-gray'}" style="font-size:10px">${w.type||'—'}</span></td>
+      <td><span class="badge ${priColor[w.priority]||'bg-gray'}" style="font-size:10px">${w.priority||'—'}</span></td>
+      <td style="font-size:11px">${w.reportedBy||w.by||'—'}</td>
+      <td style="font-size:11px">${date}</td>
+      <td style="font-size:11px">${tech}</td>
+      <td class="ff-m" style="font-size:11px">${w.mttrHours?parseFloat(w.mttrHours).toFixed(0)+'h':'—'}</td>
+      <td>
+        <span class="badge ${stColor[w.status]||'bg-gray'}" style="font-size:10px">${stLabel[w.status]||w.status||'—'}</span>
+        ${w.status==='pending'&&w.pendingDetail?`<div style="font-size:9px;color:var(--yellow);margin-top:2px;max-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${w.pendingDetail}">${w.pendingDetail.slice(0,30)}</div>`:''}
+      </td>
+      <td><div class="flex gap-8">
+        <button class="btn btn-secondary btn-sm" onclick="showWRDetail('${id}')" title="รายละเอียด">🔍</button>
+        ${w.status==='open'?`<button class="btn btn-secondary btn-sm" onclick="updateWR('${id}','inprog')" title="รับงาน">▶</button><button class="btn btn-secondary btn-sm" onclick="showPendingModal('${id}')" title="Pending + เหตุผล" style="background:var(--yellow-dim);border-color:var(--yellow);color:var(--yellow)">⏸</button>`:''}
+        ${w.status==='inprog'?`<button class="btn btn-success btn-sm" onclick="closeWR('${id}')" title="ปิดงาน">✅</button><button class="btn btn-secondary btn-sm" onclick="showPendingModal('${id}')" title="Pending" style="background:var(--yellow-dim);border-color:var(--yellow);color:var(--yellow)">⏸</button>`:''}
+        ${w.status==='pending'?`<button class="btn btn-secondary btn-sm" onclick="updateWR('${id}','inprog')" title="กลับดำเนินการ">▶</button><button class="btn btn-secondary btn-sm" onclick="showPendingModal('${id}')" title="แก้เหตุผล" style="background:var(--yellow-dim);border-color:var(--yellow);color:var(--yellow)">📝</button>`:''}
+        <button class="btn btn-danger btn-sm" onclick="deleteWR('${id}')" title="ลบ">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="12" style="text-align:center;padding:24px;color:var(--text3)">ไม่พบข้อมูล</td></tr>';
+  renderWRPagination();
 };
 
 // ════ INIT ════
 seedData();
 refreshDash();
+// Set default date for cost form
+const today=new Date().toISOString().split('T')[0];
+const wrcDate=document.getElementById('wrc-date');if(wrcDate)wrcDate.value=today;
 </script>
 </body>
 </html>
