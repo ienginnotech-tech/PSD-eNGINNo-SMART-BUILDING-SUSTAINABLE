@@ -350,35 +350,97 @@ select.form-control option{background:var(--bg3)}
 <!-- ══════════ WR ══════════ -->
 <div id="view-wr" class="view">
   <div class="section-hdr">
-    <div><div class="section-title">🔧 Work Request (WR)</div><div class="section-sub">แจ้งซ่อม → รับงาน → ดำเนินการ → ปิดงาน · SLA · MTTR</div></div>
-    <div class="flex gap-8">
-      <select class="form-control btn-sm" style="width:120px" onchange="filterWRStatus(this.value)">
-        <option value="">ทุกสถานะ</option><option value="open">Open</option><option value="inprog">In Progress</option><option value="closed">Closed</option>
+    <div>
+      <div class="section-title">🔧 Work Request (WR)</div>
+      <div class="section-sub">Fixtab + eNGINNo SBS · แจ้งซ่อม → รับงาน → ปิดงาน · SLA · MTTR · แยกตาม Branch</div>
+    </div>
+    <div class="flex gap-8 flex-wrap">
+      <select class="form-control btn-sm" id="wr-filter-branch" style="width:160px" onchange="applyWRFilter()">
+        <option value="">ทุก Branch</option>
       </select>
-      <select class="form-control btn-sm" style="width:110px" onchange="filterWRPriority(this.value)">
-        <option value="">ทุก Priority</option><option value="critical">🔴 Critical</option><option value="high">🟡 High</option><option value="normal">🟢 Normal</option>
+      <select class="form-control btn-sm" id="wr-filter-status" style="width:120px" onchange="applyWRFilter()">
+        <option value="">ทุกสถานะ</option>
+        <option value="open">🟠 Open</option>
+        <option value="inprog">🔵 In Progress</option>
+        <option value="pending">🟡 Pending</option>
+        <option value="closed">🟢 Closed</option>
+        <option value="rejected">🔴 Rejected</option>
       </select>
+      <select class="form-control btn-sm" id="wr-filter-priority" style="width:120px" onchange="applyWRFilter()">
+        <option value="">ทุก Priority</option>
+        <option value="high">🔴 High</option>
+        <option value="normal">🟡 Medium</option>
+        <option value="low">🟢 Low</option>
+      </select>
+      <select class="form-control btn-sm" id="wr-filter-type" style="width:120px" onchange="applyWRFilter()">
+        <option value="">ทุกประเภท</option>
+        <option value="CM">CM ซ่อมแซม</option>
+        <option value="PM">PM บำรุงรักษา</option>
+        <option value="PJ">PJ ติดตั้ง</option>
+      </select>
+      <input class="form-control btn-sm" id="wr-search" placeholder="🔍 ค้นหา..." style="width:140px" oninput="applyWRFilter()">
+      <button class="btn btn-secondary btn-sm" onclick="loadWRFromSheets()">☁ โหลดจาก Sheets</button>
       <button class="btn btn-secondary btn-sm" onclick="exportWR()">⬇ Export</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('importFixtabModal')">📥 Import Fixtab</button>
       <button class="btn btn-primary btn-sm" onclick="openModal('addWRModal')">+ แจ้งซ่อม</button>
     </div>
   </div>
+
+  <!-- Data Source Indicator -->
+  <div id="wr-source-bar" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;font-size:11px">
+    <div class="flex gap-8 fc">
+      <span id="wr-src-icon">📦</span>
+      <span id="wr-src-text" style="color:var(--text2)">ข้อมูลจาก localStorage</span>
+      <span class="badge bg-gray" id="wr-src-count">0 รายการ</span>
+    </div>
+    <div class="flex gap-8 fc">
+      <span style="color:var(--text3)">อัปเดตล่าสุด:</span>
+      <span id="wr-last-update" style="color:var(--text2);font-family:var(--font-m)">—</span>
+    </div>
+  </div>
+
+  <!-- KPI -->
   <div class="kpi-grid">
-    <div class="kpi orange"><div class="kpi-label">Open</div><div class="kpi-value t-orange" id="wr-open">0</div></div>
-    <div class="kpi blue"><div class="kpi-label">In Progress</div><div class="kpi-value t-blue" id="wr-ip">0</div></div>
-    <div class="kpi green"><div class="kpi-label">Closed</div><div class="kpi-value t-green" id="wr-closed">0</div></div>
-    <div class="kpi teal"><div class="kpi-label">Avg MTTR (h)</div><div class="kpi-value t-teal" id="wr-mttr">—</div></div>
-    <div class="kpi red"><div class="kpi-label">Critical Open</div><div class="kpi-value t-red" id="wr-crit">0</div></div>
+    <div class="kpi orange"><div class="kpi-label">Open</div><div class="kpi-value t-orange" id="wr-open">0</div><div class="kpi-sub">รอดำเนินการ</div></div>
+    <div class="kpi blue"><div class="kpi-label">In Progress</div><div class="kpi-value t-blue" id="wr-ip">0</div><div class="kpi-sub">กำลังซ่อม</div></div>
+    <div class="kpi green"><div class="kpi-label">Closed</div><div class="kpi-value t-green" id="wr-closed">0</div><div class="kpi-sub">ปิดแล้ว</div></div>
+    <div class="kpi teal"><div class="kpi-label">Avg MTTR (h)</div><div class="kpi-value t-teal" id="wr-mttr">—</div><div class="kpi-sub">เฉลี่ยชั่วโมงซ่อม</div></div>
+    <div class="kpi red"><div class="kpi-label">High Priority</div><div class="kpi-value t-red" id="wr-crit">0</div><div class="kpi-sub">งานเร่งด่วน</div></div>
   </div>
-  <div class="grid-2 mb-16">
-    <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">WR Monthly Trend</div><div class="chart-wrap" style="height:180px"><canvas id="c-wr-trend"></canvas></div></div>
-    <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">MTTR by System</div><div class="chart-wrap" style="height:180px"><canvas id="c-mttr"></canvas></div></div>
+
+  <!-- Charts -->
+  <div class="grid-3 mb-16">
+    <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">📊 WR Monthly Trend</div><div class="chart-wrap" style="height:180px"><canvas id="c-wr-trend"></canvas></div></div>
+    <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">🏢 WR by Branch</div><div class="chart-wrap" style="height:180px"><canvas id="c-wr-branch"></canvas></div></div>
+    <div class="card"><div class="ff-d fw-6" style="font-size:13px;margin-bottom:10px">🔧 WR by Issue Type</div><div class="chart-wrap" style="height:180px"><canvas id="c-wr-issue"></canvas></div></div>
   </div>
+
+  <!-- Branch Summary Pills -->
+  <div id="branch-pills" class="flex gap-8 flex-wrap mb-12"></div>
+
+  <!-- Table -->
   <div class="table-wrap">
     <table>
-      <thead><tr><th>WR ID</th><th>Asset</th><th>Type</th><th>ปัญหา</th><th>Priority</th><th>ผู้แจ้ง</th><th>วันที่</th><th>ช่าง</th><th>MTTR(h)</th><th>ต้นทุน(฿)</th><th>สถานะ</th><th>Action</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Ticket / WR ID</th>
+          <th>Branch</th>
+          <th>Issue Type</th>
+          <th>รายละเอียด</th>
+          <th>Type</th>
+          <th>Priority</th>
+          <th>ผู้แจ้ง</th>
+          <th>วันที่</th>
+          <th>ช่าง</th>
+          <th>MTTR(h)</th>
+          <th>สถานะ</th>
+          <th>Action</th>
+        </tr>
+      </thead>
       <tbody id="wr-tbody"></tbody>
     </table>
   </div>
+  <div id="wr-pagination" class="flex gap-8 mt-12 fc" style="justify-content:center"></div>
 </div>
 
 <!-- ══════════ PPM ══════════ -->
@@ -830,6 +892,86 @@ select.form-control option{background:var(--bg3)}
   </div>
 </div>
 
+<!-- IMPORT FIXTAB MODAL -->
+<div class="modal-overlay" id="importFixtabModal">
+  <div class="modal modal-lg">
+    <div class="modal-hdr">
+      <div class="modal-title">📥 Import Fixtab → Work_Orders</div>
+      <button class="btn btn-secondary btn-sm" onclick="closeModal('importFixtabModal')">✕</button>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" id="imp-tab-json" onclick="switchImpTab('json')">📋 Paste JSON</div>
+      <div class="tab" id="imp-tab-excel" onclick="switchImpTab('excel')">📊 Upload Excel</div>
+      <div class="tab" id="imp-tab-guide" onclick="switchImpTab('guide')">📖 วิธีใช้</div>
+    </div>
+
+    <!-- JSON Pane -->
+    <div id="imp-pane-json">
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px;margin-bottom:10px;font-size:11px;color:var(--text3)">
+        💡 Export จาก Fixtab → Download Excel → แปลงเป็น JSON ด้วยปุ่ม "แปลง Excel" หรือวาง JSON Array โดยตรง
+      </div>
+      <div class="form-group">
+        <label class="form-label">JSON Array ของ Ticket Data</label>
+        <textarea class="form-control ff-m" id="imp-json" rows="8" placeholder='[{"Ticket Number":"TIC001","Branch Name":"BITEC BURI","Status Ticket":"Closed",...}]' style="font-size:11px"></textarea>
+      </div>
+      <div class="flex gap-8">
+        <button class="btn btn-secondary btn-sm" onclick="validateImpJSON()">✅ Validate JSON</button>
+        <button class="btn btn-primary" onclick="importFromJSON()">📥 Import ลง Sheets</button>
+      </div>
+      <div id="imp-json-result" style="margin-top:10px;font-size:12px"></div>
+    </div>
+
+    <!-- Excel Pane -->
+    <div id="imp-pane-excel" style="display:none">
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px;margin-bottom:12px;font-size:11px;color:var(--text3)">
+        📊 Upload ไฟล์ Fixtab Export (.xlsx) ระบบจะแปลงและ Import เข้า Google Sheets อัตโนมัติ<br>
+        Sheet ที่รองรับ: <span class="tag">Ticket Report</span>
+      </div>
+      <div style="border:2px dashed var(--border2);border-radius:var(--r-lg);padding:32px;text-align:center;cursor:pointer;background:var(--bg3)" onclick="document.getElementById('imp-file').click()" id="drop-zone">
+        <div style="font-size:32px;margin-bottom:8px">📁</div>
+        <div class="fw-6" style="font-size:14px">คลิกหรือลาก Excel มาวาง</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">Fixtab-Export-*.xlsx · รองรับไฟล์ใหญ่สุด 10MB</div>
+        <input type="file" id="imp-file" accept=".xlsx,.xls" style="display:none" onchange="handleExcelUpload(this)">
+      </div>
+      <div id="imp-excel-preview" style="margin-top:12px;font-size:12px"></div>
+      <div class="flex gap-8 mt-12">
+        <button class="btn btn-primary" id="imp-excel-btn" onclick="importFromExcel()" style="display:none">📥 Import ลง Sheets</button>
+      </div>
+      <div id="imp-excel-result" style="margin-top:10px;font-size:12px"></div>
+    </div>
+
+    <!-- Guide Pane -->
+    <div id="imp-pane-guide" style="display:none">
+      <div class="alert-box alert-info" style="font-size:12px">
+        <strong>วิธี Import ข้อมูลจาก Fixtab เข้า eNGINNo SBS</strong>
+      </div>
+      <div style="font-size:12px;line-height:1.8;color:var(--text2)">
+        <div class="metric-row"><span>1️⃣ Login Fixtab</span><span style="color:var(--teal)">app.fixtab.co</span></div>
+        <div class="metric-row"><span>2️⃣ Reports → Export → เลือก Date Range</span><span class="badge bg-orange">Export Excel</span></div>
+        <div class="metric-row"><span>3️⃣ ได้ไฟล์ <span class="tag">Fixtab-Export-*.xlsx</span></span><span>Sheet: Ticket Report</span></div>
+        <div class="metric-row"><span>4️⃣ กลับมาที่นี่ → Tab "Upload Excel"</span><span class="badge bg-green">Upload</span></div>
+        <div class="metric-row"><span>5️⃣ กด Import → ข้อมูลเข้า Google Sheets</span><span class="badge bg-teal">✅ Auto Sync</span></div>
+      </div>
+      <div style="margin-top:14px;font-size:12px">
+        <div class="ff-d fw-6" style="font-size:13px;margin-bottom:8px">🗂 Branch Mapping</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Fixtab Branch Name</th><th>Module</th><th>Building</th></tr></thead>
+          <tbody>
+            <tr><td>BITEC BURI</td><td>Commercial</td><td>BITEC</td></tr>
+            <tr><td>BEAT ACTIVE</td><td>Commercial</td><td>BITEC</td></tr>
+            <tr><td>Venue - Banquet/CS/Front</td><td>Commercial</td><td>BITEC</td></tr>
+            <tr><td>Retail & Parking</td><td>Commercial</td><td>BHIRAJBURI</td></tr>
+            <tr><td>Township-*</td><td>Commercial</td><td>TOWNSHIP</td></tr>
+            <tr><td>Workplace - ENG, BD</td><td>Office</td><td>PSDENG</td></tr>
+            <tr><td>About Food - *</td><td>Hotel</td><td>HOTEL</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ADD TRAINING -->
 <div class="modal-overlay" id="addTrainModal">
   <div class="modal">
@@ -1172,68 +1314,418 @@ function filterAssetSys(v){renderAssets();}
 function filterAssetStatus(v){renderAssets();}
 function exportAssets(){exportXLS(DB.get('assets',[]),'Assets');}
 
-// ════ WR ════
-function renderWR(){
-  const wr=DB.get('wr',[]);
-  const open=wr.filter(w=>w.status==='open').length;
-  const ip=wr.filter(w=>w.status==='inprog').length;
-  const closed=wr.filter(w=>w.status==='closed');
-  const mttr=closed.length?closed.reduce((s,w)=>s+(w.mttr||0),0)/closed.length:0;
-  document.getElementById('wr-open').textContent=open;
-  document.getElementById('wr-ip').textContent=ip;
-  document.getElementById('wr-closed').textContent=closed.length;
-  document.getElementById('wr-mttr').textContent=mttr.toFixed(1);
-  document.getElementById('wr-crit').textContent=wr.filter(w=>w.priority==='critical'&&w.status!=='closed').length;
-  const typeColor={ER:'bg-red',CM:'bg-orange',PJ:'bg-blue'};
-  const priColor={critical:'bg-red',high:'bg-yellow',normal:'bg-green'};
-  document.getElementById('wr-tbody').innerHTML=wr.map(w=>`<tr>
-    <td><span class="tag">${w.id}</span></td>
-    <td style="font-size:11px">${w.assetName||w.asset||'—'}</td>
-    <td><span class="badge ${typeColor[w.type]||'bg-gray'}">${w.type}</span></td>
-    <td style="font-size:11px;max-width:180px">${w.desc}</td>
-    <td><span class="badge ${priColor[w.priority]||'bg-gray'}">${w.priority}</span></td>
-    <td style="font-size:11px">${w.by||'—'}</td>
-    <td style="font-size:11px">${fmtDate(w.date)}</td>
-    <td style="font-size:11px">${w.tech||'—'}</td>
-    <td class="ff-m">${w.mttr||'—'}</td>
-    <td class="ff-m">${w.cost?fmtCurr(w.cost):'—'}</td>
-    <td><span class="badge ${w.status==='closed'?'bg-green':w.status==='inprog'?'bg-blue':'bg-orange'}">${w.status}</span></td>
-    <td><div class="flex gap-8">
-      ${w.status==='open'?`<button class="btn btn-secondary btn-sm" onclick="updateWR('${w.id}','inprog')">▶</button>`:''}
-      ${w.status==='inprog'?`<button class="btn btn-success btn-sm" onclick="closeWR('${w.id}')">✅</button>`:''}
-      <button class="btn btn-danger btn-sm" onclick="deleteWR('${w.id}')">🗑</button>
-    </div></td>
-  </tr>`).join('')||'<tr><td colspan="12" style="text-align:center;padding:24px;color:var(--text3)">ไม่มี Work Request</td></tr>';
+// ════════════════════════════════════════════════════
+//  WR MODULE — Fixtab + Google Sheets Integration
+//  ข้อมูลจาก Google Sheets (cloud) + localStorage (local)
+// ════════════════════════════════════════════════════
+let wrAllData = [];      // ข้อมูลทั้งหมด (Sheets + local)
+let wrFiltered = [];     // หลัง filter
+let wrPage = 1;
+const WR_PAGE_SIZE = 50;
 
-  // WR Trend chart
-  dc('wr-trend');
-  const months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.'];
-  const ctx=document.getElementById('c-wr-trend');
-  if(ctx) charts['wr-trend']=new Chart(ctx,{type:'bar',data:{labels:months,datasets:[{label:'WR Count',data:[3,5,2,6,4,8,wr.length],backgroundColor:'rgba(249,115,22,0.7)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8B949E'}},y:{ticks:{color:'#8B949E'},grid:{color:'#21262D'}}}}});
+const BRANCH_MAP_FE = {
+  'BITEC BURI':{'module':'Commercial','building':'BITEC'},
+  'BEAT ACTIVE':{'module':'Commercial','building':'BITEC'},
+  'ES97 Space Journey':{'module':'Commercial','building':'BITEC'},
+  'Venue - Banquet':{'module':'Commercial','building':'BITEC'},
+  'Venue - CS':{'module':'Commercial','building':'BITEC'},
+  'Venue - Front':{'module':'Commercial','building':'BITEC'},
+  'Retail & Parking':{'module':'Commercial','building':'BHIRAJBURI'},
+  'Flexspace':{'module':'Commercial','building':'BHIRAJBURI'},
+  'Township-Building':{'module':'Commercial','building':'TOWNSHIP'},
+  'Township-Maintenance':{'module':'Commercial','building':'TOWNSHIP'},
+  'Township - BDM, Traffic, Fireman':{'module':'Commercial','building':'TOWNSHIP'},
+  'Township-Kitchen':{'module':'Commercial','building':'TOWNSHIP'},
+  'Township-Vehicles':{'module':'Commercial','building':'TOWNSHIP'},
+  'Workplace - ENG, BD':{'module':'Office','building':'PSDENG'},
+  'About Food - GAYA':{'module':'Hotel','building':'HOTEL'},
+  'About Food - Kitchen':{'module':'Hotel','building':'HOTEL'},
+  'About Food - Stewards':{'module':'Hotel','building':'HOTEL'},
+};
 
-  // MTTR chart
-  dc('mttr');
-  const ctx2=document.getElementById('c-mttr');
-  if(ctx2) charts.mttr=new Chart(ctx2,{type:'bar',data:{labels:['AC','TR','EE','FP','SN','BAS'],datasets:[{label:'MTTR (h)',data:[3.5,4.5,2.0,1.5,3.0,5.0],backgroundColor:'rgba(59,130,246,0.7)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8B949E'}},y:{ticks:{color:'#8B949E'},grid:{color:'#21262D'}}}}});
+const FIXTAB_STATUS = {'New':'open','In progress':'inprog','Done':'closed','Closed':'closed','Pending':'pending','Rejected':'rejected'};
+const FIXTAB_PRI = {'High':'high','Medium':'normal','Low':'low'};
+const FIXTAB_TYPE = {'ซ่อมแซม':'CM','ติดตั้ง':'PJ','บำรุงรักษา':'PM'};
+
+// ── renderWR — จุดเข้าหลัก ──
+async function renderWR(){
+  // โหลด local ก่อนแสดง
+  const local = DB.get('wr',[]);
+  wrAllData = [...local];
+  updateWRSource('local', local.length);
+  applyWRFilter();
+  drawWRCharts();
+  populateBranchFilter();
+  // พยายามโหลดจาก Sheets ใน background
+  if(GASURL()) loadWRFromSheets();
 }
 
+// ── โหลดจาก Google Sheets ──
+async function loadWRFromSheets(){
+  const url = GASURL();
+  if(!url){ showWRMsg('❌ ยังไม่ได้ตั้งค่า GAS URL'); return; }
+  updateWRSource('loading', wrAllData.length);
+  try{
+    const r = await fetch(`${url}?action=getWR&limit=5000`);
+    const d = await r.json();
+    if(d.ok && d.data.length > 0){
+      // Merge: Sheets + local (ไม่ซ้ำกัน)
+      const sheetsIds = new Set(d.data.map(w=>w.id));
+      const localOnly = DB.get('wr',[]).filter(w=>!sheetsIds.has(w.id));
+      wrAllData = [...d.data, ...localOnly];
+      DB.set('wr', wrAllData); // cache ใน local
+      DB.set('wr_last_sync', new Date().toISOString());
+      updateWRSource('sheets', wrAllData.length);
+      applyWRFilter();
+      drawWRCharts();
+      populateBranchFilter();
+    } else {
+      updateWRSource('local', wrAllData.length);
+    }
+  }catch(e){
+    updateWRSource('local', wrAllData.length);
+  }
+}
+
+function updateWRSource(src, count){
+  const icons = {local:'📦',sheets:'☁',loading:'⏳'};
+  const texts = {local:'ข้อมูลจาก localStorage (ออฟไลน์)',sheets:'ข้อมูลจาก Google Sheets (ออนไลน์)',loading:'กำลังโหลดจาก Sheets...'};
+  document.getElementById('wr-src-icon').textContent = icons[src]||'📦';
+  document.getElementById('wr-src-text').textContent = texts[src]||'';
+  document.getElementById('wr-src-count').textContent = count.toLocaleString('th-TH')+' รายการ';
+  const t = DB.get('wr_last_sync','');
+  document.getElementById('wr-last-update').textContent = t?new Date(t).toLocaleString('th-TH'):'—';
+}
+
+// ── FILTER & RENDER TABLE ──
+function applyWRFilter(){
+  wrPage = 1;
+  const branch   = document.getElementById('wr-filter-branch')?.value||'';
+  const status   = document.getElementById('wr-filter-status')?.value||'';
+  const priority = document.getElementById('wr-filter-priority')?.value||'';
+  const type     = document.getElementById('wr-filter-type')?.value||'';
+  const search   = (document.getElementById('wr-search')?.value||'').toLowerCase();
+
+  wrFiltered = wrAllData.filter(w=>{
+    if(branch   && (w.branchName||w.branch||'') !== branch) return false;
+    if(status   && w.status !== status) return false;
+    if(priority && w.priority !== priority) return false;
+    if(type     && w.type !== type) return false;
+    if(search){
+      const hay = [w.id,w.ticketNumber,w.description,w.desc,w.assetName,w.issueType,w.reportedBy,w.by,w.branchName].join(' ').toLowerCase();
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  renderWRTable();
+  renderWRKPI();
+  renderBranchPills();
+}
+
+function renderWRTable(){
+  const start = (wrPage-1)*WR_PAGE_SIZE;
+  const page  = wrFiltered.slice(start, start+WR_PAGE_SIZE);
+  const priColor = {high:'bg-red',normal:'bg-yellow',low:'bg-green',critical:'bg-red'};
+  const typeColor = {CM:'bg-orange',PM:'bg-blue',PJ:'bg-purple',ER:'bg-red'};
+  const stColor = {open:'bg-orange',inprog:'bg-blue',pending:'bg-yellow',closed:'bg-green',rejected:'bg-gray'};
+  const stLabel = {open:'Open',inprog:'In Prog',pending:'Pending',closed:'Closed',rejected:'Rejected'};
+
+  document.getElementById('wr-tbody').innerHTML = page.map(w=>{
+    const id = w.id||w.ticketNumber||'—';
+    const branch = w.branchName||w.branch||w.building||'—';
+    const desc = (w.description||w.desc||'—').slice(0,60);
+    const date = w.openDate||w.date||'—';
+    const tech = w.assignedTo||w.tech||'—';
+    const src = w.source==='Fixtab'?'<span class="tag" style="font-size:9px;color:var(--teal)">FX</span>':'';
+    return `<tr>
+      <td>${src}<span class="tag" style="font-size:10px">${id}</span></td>
+      <td><span class="badge bg-blue" style="font-size:10px">${branch}</span></td>
+      <td style="font-size:11px">${w.issueType||w.assetName||'—'}</td>
+      <td style="font-size:11px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${w.description||w.desc||''}">${desc}</td>
+      <td><span class="badge ${typeColor[w.type]||'bg-gray'}" style="font-size:10px">${w.type||'—'}</span></td>
+      <td><span class="badge ${priColor[w.priority]||'bg-gray'}" style="font-size:10px">${w.priority||'—'}</span></td>
+      <td style="font-size:11px">${w.reportedBy||w.by||'—'}</td>
+      <td style="font-size:11px">${date}</td>
+      <td style="font-size:11px">${tech}</td>
+      <td class="ff-m" style="font-size:11px">${w.mttrHours||w.mttr||'—'}</td>
+      <td><span class="badge ${stColor[w.status]||'bg-gray'}" style="font-size:10px">${stLabel[w.status]||w.status||'—'}</span></td>
+      <td><div class="flex gap-8">
+        ${w.status==='open'?`<button class="btn btn-secondary btn-sm" onclick="updateWR('${id}','inprog')" title="รับงาน">▶</button>`:''}
+        ${w.status==='inprog'?`<button class="btn btn-success btn-sm" onclick="closeWR('${id}')" title="ปิดงาน">✅</button>`:''}
+        <button class="btn btn-danger btn-sm" onclick="deleteWR('${id}')" title="ลบ">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="12" style="text-align:center;padding:24px;color:var(--text3)">ไม่พบข้อมูล Work Request</td></tr>';
+
+  renderWRPagination();
+}
+
+function renderWRKPI(){
+  const open   = wrFiltered.filter(w=>w.status==='open').length;
+  const ip     = wrFiltered.filter(w=>w.status==='inprog').length;
+  const closed = wrFiltered.filter(w=>w.status==='closed');
+  const high   = wrFiltered.filter(w=>(w.priority==='high'||w.priority==='critical')&&w.status!=='closed').length;
+  const withMttr = closed.filter(w=>parseFloat(w.mttrHours||w.mttr)>0);
+  const avgMttr = withMttr.length?(withMttr.reduce((s,w)=>s+(parseFloat(w.mttrHours||w.mttr)||0),0)/withMttr.length).toFixed(1):'—';
+  document.getElementById('wr-open').textContent=open.toLocaleString('th-TH');
+  document.getElementById('wr-ip').textContent=ip.toLocaleString('th-TH');
+  document.getElementById('wr-closed').textContent=closed.length.toLocaleString('th-TH');
+  document.getElementById('wr-mttr').textContent=avgMttr;
+  document.getElementById('wr-crit').textContent=high.toLocaleString('th-TH');
+  const nb=document.getElementById('nb-wr');
+  if(nb){nb.textContent=(open+ip);nb.style.display=(open+ip)?'':'none';}
+}
+
+function renderWRPagination(){
+  const total = Math.ceil(wrFiltered.length/WR_PAGE_SIZE);
+  const el = document.getElementById('wr-pagination');
+  if(!el) return;
+  if(total<=1){el.innerHTML='<span style="font-size:11px;color:var(--text3)">แสดง '+wrFiltered.length+' รายการ</span>';return;}
+  let html='<span style="font-size:11px;color:var(--text3);margin-right:8px">'+wrFiltered.length.toLocaleString('th-TH')+' รายการ</span>';
+  if(wrPage>1) html+=`<button class="btn btn-secondary btn-sm" onclick="wrPage--;applyWRFilter()">◀</button>`;
+  html+=`<span style="font-size:11px;color:var(--text2)"> หน้า ${wrPage}/${total} </span>`;
+  if(wrPage<total) html+=`<button class="btn btn-secondary btn-sm" onclick="wrPage++;applyWRFilter()">▶</button>`;
+  el.innerHTML=html;
+}
+
+function renderBranchPills(){
+  const el=document.getElementById('branch-pills');
+  if(!el) return;
+  const branches={};
+  wrFiltered.forEach(w=>{const b=w.branchName||w.branch||'อื่นๆ';branches[b]=(branches[b]||0)+1;});
+  el.innerHTML=Object.entries(branches).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([b,c])=>
+    `<div class="badge bg-blue" style="cursor:pointer;font-size:10px" onclick="document.getElementById('wr-filter-branch').value='${b}';applyWRFilter()">${b} <span style="opacity:.7">${c}</span></div>`
+  ).join('');
+}
+
+function populateBranchFilter(){
+  const el=document.getElementById('wr-filter-branch');
+  if(!el) return;
+  const branches=new Set(wrAllData.map(w=>w.branchName||w.branch||'').filter(Boolean));
+  const cur=el.value;
+  el.innerHTML='<option value="">ทุก Branch ('+wrAllData.length.toLocaleString('th-TH')+')</option>'+
+    [...branches].sort().map(b=>`<option value="${b}">${b}</option>`).join('');
+  el.value=cur;
+}
+
+// ── CHARTS ──
+function drawWRCharts(){
+  // Monthly Trend
+  dc('wr-trend');
+  const monthly={};
+  wrFiltered.forEach(w=>{
+    const d=w.openDate||w.date||'';
+    if(d){
+      // รองรับ DD-MM-YYYY และ YYYY-MM-DD
+      let m='';
+      if(d.match(/^\d{2}-\d{2}-\d{4}$/)){const p=d.split('-');m=p[2]+'-'+p[1];}
+      else if(d.length>=7) m=d.slice(0,7);
+      if(m) monthly[m]=(monthly[m]||0)+1;
+    }
+  });
+  const mKeys=Object.keys(monthly).sort().slice(-12);
+  const ctx=document.getElementById('c-wr-trend');
+  if(ctx) charts['wr-trend']=new Chart(ctx,{type:'bar',data:{labels:mKeys.map(k=>{const p=k.split('-');return p[1]+'/'+p[0].slice(2);}),datasets:[{label:'WR',data:mKeys.map(k=>monthly[k]),backgroundColor:'rgba(249,115,22,0.75)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8B949E',font:{size:9}}},y:{ticks:{color:'#8B949E'},grid:{color:'#21262D'}}}}});
+
+  // By Branch
+  dc('wr-branch');
+  const byB={};
+  wrFiltered.forEach(w=>{const b=w.branchName||w.branch||'อื่นๆ';byB[b]=(byB[b]||0)+1;});
+  const bTop=Object.entries(byB).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const ctx2=document.getElementById('c-wr-branch');
+  if(ctx2) charts['wr-branch']=new Chart(ctx2,{type:'bar',data:{labels:bTop.map(([b])=>b.length>15?b.slice(0,15)+'…':b),datasets:[{label:'WR',data:bTop.map(([,v])=>v),backgroundColor:'rgba(59,130,246,0.75)',borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8B949E',font:{size:9}}},y:{ticks:{color:'#8B949E',font:{size:9}}}}}});
+
+  // By Issue Type
+  dc('wr-issue');
+  const byI={};
+  wrFiltered.forEach(w=>{const i=w.issueType||w.assetName||'Other';byI[i]=(byI[i]||0)+1;});
+  const iTop=Object.entries(byI).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const ctx3=document.getElementById('c-wr-issue');
+  if(ctx3) charts['wr-issue']=new Chart(ctx3,{type:'doughnut',data:{labels:iTop.map(([k])=>k),datasets:[{data:iTop.map(([,v])=>v),backgroundColor:['#F97316','#3B82F6','#22C55E','#EAB308','#A855F7','#14B8A6','#EF4444','#06B6D4'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#8B949E',font:{size:9},boxWidth:10}}}}});
+}
+
+// ── SAVE WR (local + Sheets) ──
 function saveWR(){
-  const wr=DB.get('wr',[]);
-  const assetId=document.getElementById('wr-asset').value;
   const assets=DB.get('assets',[]);
+  const assetId=document.getElementById('wr-asset').value;
   const asset=assets.find(a=>a.id===assetId);
   const pri=document.querySelector('input[name="wr-pri"]:checked')?.value||'normal';
-  const w={id:genId('CM-WR'),asset:assetId,assetName:asset?.name||'—',type:document.getElementById('wr-type').value,desc:document.getElementById('wr-desc').value,priority:pri,by:document.getElementById('wr-by').value||'Anonymous',tech:document.getElementById('wr-tech').value,phone:document.getElementById('wr-phone').value,status:'open',date:new Date().toISOString(),mttr:null,cost:0};
-  if(!w.desc){alert('กรุณากรอกรายละเอียดปัญหา');return;}
-  wr.push(w);DB.set('wr',wr);closeModal('addWRModal');renderWR();
-  syncToSheets('Work_Orders',w);alert('✅ แจ้ง Work Request สำเร็จ: '+w.id);
+  const w={
+    id:genId('CM-WR'),ticketNumber:'',assetId,assetName:asset?.name||'—',
+    type:document.getElementById('wr-type').value,
+    description:document.getElementById('wr-desc').value,
+    priority:pri,reportedBy:document.getElementById('wr-by').value||'Anonymous',
+    reporterPhone:document.getElementById('wr-phone').value,
+    assignedTo:document.getElementById('wr-tech').value,
+    branchName:currentBuilding,module:'Commercial',building:currentBuilding,
+    status:'open',openDate:new Date().toISOString().split('T')[0],
+    mttrHours:null,cost:0,source:'eNGINNo',createdAt:new Date().toISOString()
+  };
+  if(!w.description){alert('กรุณากรอกรายละเอียดปัญหา');return;}
+  const wr=DB.get('wr',[]);
+  wr.unshift(w);DB.set('wr',wr);
+  wrAllData.unshift(w);
+  closeModal('addWRModal');
+  applyWRFilter();drawWRCharts();
+  syncToSheets('Work_Orders',w);
+  alert('✅ แจ้ง Work Request สำเร็จ: '+w.id);
 }
-function updateWR(id,status){const wr=DB.get('wr',[]);const i=wr.findIndex(w=>w.id===id);if(i<0)return;wr[i].status=status;DB.set('wr',wr);renderWR();}
-function closeWR(id){const wr=DB.get('wr',[]);const i=wr.findIndex(w=>w.id===id);if(i<0)return;const mttr=parseFloat(prompt('MTTR (ชั่วโมง):','0'))||0;const cost=parseFloat(prompt('ค่าใช้จ่าย (฿):','0'))||0;wr[i].status='closed';wr[i].mttr=mttr;wr[i].cost=cost;wr[i].closeDate=new Date().toISOString();DB.set('wr',wr);renderWR();alert('✅ ปิด WR สำเร็จ');}
-function deleteWR(id){if(!confirm('ลบ WR "'+id+'"?'))return;DB.set('wr',DB.get('wr',[]).filter(w=>w.id!==id));renderWR();}
-function filterWRStatus(v){renderWR();}
-function filterWRPriority(v){renderWR();}
-function exportWR(){exportXLS(DB.get('wr',[]),'WorkRequest');}
+
+// ── UPDATE / CLOSE / DELETE ──
+function updateWR(id,status){
+  const i=wrAllData.findIndex(w=>w.id===id||w.ticketNumber===id);
+  if(i<0)return;
+  wrAllData[i].status=status;
+  DB.set('wr',wrAllData);
+  applyWRFilter();
+  syncToSheets('Work_Orders',{id,status});
+}
+function closeWR(id){
+  const mttr=parseFloat(prompt('MTTR (ชั่วโมง):','0'))||0;
+  const cost=parseFloat(prompt('ค่าใช้จ่าย (฿):','0'))||0;
+  const i=wrAllData.findIndex(w=>w.id===id||w.ticketNumber===id);
+  if(i<0)return;
+  wrAllData[i].status='closed';wrAllData[i].mttrHours=mttr;wrAllData[i].cost=cost;
+  wrAllData[i].closeDate=new Date().toISOString().split('T')[0];
+  DB.set('wr',wrAllData);
+  applyWRFilter();drawWRCharts();
+  syncToSheets('Work_Orders',{id,status:'closed',mttrHours:mttr,cost});
+  alert('✅ ปิด WR สำเร็จ — MTTR: '+mttr+'h');
+}
+function deleteWR(id){
+  if(!confirm('ลบ WR "'+id+'"?'))return;
+  wrAllData=wrAllData.filter(w=>w.id!==id&&w.ticketNumber!==id);
+  DB.set('wr',wrAllData);
+  applyWRFilter();drawWRCharts();
+}
+function exportWR(){exportXLS(wrFiltered,'WorkRequest_'+new Date().toISOString().split('T')[0]);}
+function showWRMsg(msg){console.log(msg);}
+
+// ════ IMPORT FIXTAB ════
+function switchImpTab(tab){
+  ['json','excel','guide'].forEach(t=>{
+    document.getElementById('imp-tab-'+t)?.classList.toggle('active',t===tab);
+    const p=document.getElementById('imp-pane-'+t);
+    if(p) p.style.display=t===tab?'':'none';
+  });
+}
+
+// Convert Fixtab row → SBS WO format
+function convertFixtabRow(r){
+  const branch=r['Branch Name']||r.branchName||'';
+  const bm=BRANCH_MAP_FE[branch]||{module:'Commercial',building:'BHIRAJBURI'};
+  const tn=r['Ticket Number']||r.ticketNumber||'';
+  return {
+    id: 'FX-'+tn,
+    ticketNumber: tn,
+    assetId: '',
+    assetName: r['Issue Type']||r.issueType||'',
+    type: FIXTAB_TYPE[r['Ticket Type']||r.ticketType||'']||'CM',
+    description: (r['Issue Detail']||r.description||'').replace(/_x000d_/g,'').replace(/\n/g,' ').trim().slice(0,200),
+    priority: FIXTAB_PRI[r['Priority']||r.priority||'']||'normal',
+    reportedBy: r['Reporter']||r.reportedBy||'',
+    reporterPhone: r['Reporter Phone Number']||r.reporterPhone||'',
+    assignedTo: r['Technicians']||r.assignedTo||'',
+    team: '',
+    module: r.module||bm.module,
+    building: r.building||bm.building,
+    branchName: branch,
+    status: FIXTAB_STATUS[r['Status Ticket']||r.status||'']||'open',
+    openDate: r['Report Date']||r.openDate||'',
+    closeDate: r['Closed Task Date']||r.closeDate||'',
+    completeDate: r['Complete Date']||r.completeDate||'',
+    completeDetail: (r['Complete Detail']||r.completeDetail||'').replace(/_x000d_/g,'').trim().slice(0,150),
+    issueType: r['Issue Type']||r.issueType||'',
+    ticketType: r['Ticket Type']||r.ticketType||'',
+    mttrHours: '',cost:0,source:'Fixtab',
+    createdAt: r['Report Date']||r.openDate||new Date().toISOString().split('T')[0]
+  };
+}
+
+function validateImpJSON(){
+  try{
+    const j=JSON.parse(document.getElementById('imp-json').value);
+    if(!Array.isArray(j)) throw new Error('ต้องเป็น Array');
+    document.getElementById('imp-json-result').innerHTML=`<div style="color:var(--green)">✅ JSON ถูกต้อง — ${j.length.toLocaleString('th-TH')} รายการ พร้อม Import</div>`;
+  }catch(e){
+    document.getElementById('imp-json-result').innerHTML=`<div style="color:var(--red)">❌ JSON ไม่ถูกต้อง: ${e.message}</div>`;
+  }
+}
+
+async function importFromJSON(){
+  const resEl=document.getElementById('imp-json-result');
+  try{
+    const raw=JSON.parse(document.getElementById('imp-json').value);
+    if(!Array.isArray(raw)||raw.length===0){resEl.innerHTML='<div style="color:var(--red)">❌ ไม่มีข้อมูล</div>';return;}
+    resEl.innerHTML='<div style="color:var(--text3)">⏳ กำลัง convert '+raw.length+' รายการ...</div>';
+    const converted=raw.map(convertFixtabRow);
+    await doImport(converted, resEl);
+  }catch(e){resEl.innerHTML='<div style="color:var(--red)">❌ Error: '+e.message+'</div>';}
+}
+
+function handleExcelUpload(input){
+  const file=input.files[0];
+  if(!file) return;
+  const preview=document.getElementById('imp-excel-preview');
+  preview.innerHTML='<div style="color:var(--text3)">⏳ กำลังอ่านไฟล์...</div>';
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const sheet=wb.Sheets['Ticket Report']||wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(sheet);
+      window._excelRows=rows;
+      preview.innerHTML=`<div style="color:var(--green)">✅ อ่านสำเร็จ — <strong>${rows.length.toLocaleString('th-TH')}</strong> รายการ จาก Sheet "${wb.SheetNames[0]}"</div>
+      <div style="color:var(--text3);font-size:11px;margin-top:4px">Columns: ${Object.keys(rows[0]||{}).slice(0,5).join(', ')}...</div>`;
+      document.getElementById('imp-excel-btn').style.display='';
+    }catch(err){preview.innerHTML='<div style="color:var(--red)">❌ อ่านไฟล์ไม่ได้: '+err.message+'</div>';}
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+async function importFromExcel(){
+  const rows=window._excelRows;
+  const resEl=document.getElementById('imp-excel-result');
+  if(!rows||rows.length===0){resEl.innerHTML='<div style="color:var(--red)">❌ ไม่มีข้อมูล กรุณา Upload ก่อน</div>';return;}
+  resEl.innerHTML='<div style="color:var(--text3)">⏳ กำลัง convert '+rows.length.toLocaleString('th-TH')+' รายการ...</div>';
+  const converted=rows.map(convertFixtabRow);
+  await doImport(converted, resEl);
+}
+
+async function doImport(converted, resEl){
+  const url=GASURL();
+  // เก็บลง localStorage ก่อน (offline support)
+  const existing=new Set(wrAllData.map(w=>w.id));
+  const newRows=converted.filter(w=>!existing.has(w.id));
+  wrAllData=[...newRows,...wrAllData];
+  DB.set('wr',wrAllData);
+  DB.set('wr_last_sync',new Date().toISOString());
+  applyWRFilter();drawWRCharts();populateBranchFilter();
+
+  resEl.innerHTML=`<div style="color:var(--green)">✅ บันทึกลง localStorage สำเร็จ — ${newRows.length.toLocaleString('th-TH')} รายการใหม่ (ข้ามซ้ำ ${(converted.length-newRows.length).toLocaleString('th-TH')})</div>`;
+
+  // Sync ขึ้น Google Sheets ถ้ามี URL
+  if(url && newRows.length>0){
+    resEl.innerHTML+='<div style="color:var(--text3);margin-top:6px">⏳ กำลัง sync ขึ้น Google Sheets...</div>';
+    try{
+      // แบ่ง batch 500 ต่อ request
+      const BATCH=500;let uploaded=0;
+      for(let i=0;i<newRows.length;i+=BATCH){
+        const batch=newRows.slice(i,i+BATCH);
+        const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'importFixtab',rows:batch})});
+        const d=await r.json();
+        if(d.ok) uploaded+=d.inserted||0;
+      }
+      resEl.innerHTML+=`<div style="color:var(--green);margin-top:4px">☁ Sync ขึ้น Sheets สำเร็จ: ${uploaded.toLocaleString('th-TH')} รายการ</div>`;
+    }catch(e){
+      resEl.innerHTML+=`<div style="color:var(--yellow);margin-top:4px">⚠ Sync ขึ้น Sheets ไม่สำเร็จ (ข้อมูลอยู่ใน localStorage แล้ว): ${e.message}</div>`;
+    }
+  } else if(!url){
+    resEl.innerHTML+='<div style="color:var(--yellow);margin-top:4px">⚠ ยังไม่มี GAS URL — ข้อมูลอยู่ใน localStorage เท่านั้น</div>';
+  }
+  closeModal('importFixtabModal');
+}
 
 // ════ PPM ════
 function renderPPM(){
