@@ -544,14 +544,56 @@ select.form-control option{background:var(--bg3)}
     <div><div class="section-title">📐 WR Analytics — MTTR & Maintainability</div><div class="section-sub">วิเคราะห์ประสิทธิภาพการซ่อม · M = 1 − e^(−Target/MTTR)</div></div>
     <div class="flex gap-8">
       <select class="form-control btn-sm" id="ana-branch" style="width:180px" onchange="renderWRAnalytics()"><option value="">ทุก Branch</option></select>
-      <select class="form-control btn-sm" id="ana-period" style="width:120px" onchange="renderWRAnalytics()">
-        <option value="all">ทั้งหมด</option>
-        <option value="30">30 วันล่าสุด</option>
-        <option value="90">90 วันล่าสุด</option>
-        <option value="180">180 วันล่าสุด</option>
-        <option value="365">1 ปีล่าสุด</option>
-      </select>
       <button class="btn btn-secondary btn-sm" onclick="exportAnalytics()">⬇ Export</button>
+    </div>
+  </div>
+
+  <!-- ── DATE FILTER BAR (Analytics) ── -->
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;margin-bottom:14px">
+    <div class="flex gap-8 flex-wrap fc">
+      <span style="font-size:11px;font-weight:700;color:var(--text3);white-space:nowrap">📅 ช่วงเวลา:</span>
+
+      <!-- Quick Presets -->
+      <div class="flex gap-4 flex-wrap" id="ana-date-presets">
+        <button class="btn btn-secondary btn-sm" onclick="setAnaDatePreset('month')"  id="adp-month">เดือนนี้</button>
+        <button class="btn btn-secondary btn-sm" onclick="setAnaDatePreset('q1')"     id="adp-q1">Q1</button>
+        <button class="btn btn-secondary btn-sm" onclick="setAnaDatePreset('q2')"     id="adp-q2">Q2</button>
+        <button class="btn btn-secondary btn-sm" onclick="setAnaDatePreset('q3')"     id="adp-q3">Q3</button>
+        <button class="btn btn-secondary btn-sm" onclick="setAnaDatePreset('q4')"     id="adp-q4">Q4</button>
+        <button class="btn btn-secondary btn-sm" onclick="setAnaDatePreset('30')"     id="adp-30">30 วัน</button>
+        <button class="btn btn-secondary btn-sm" onclick="setAnaDatePreset('90')"     id="adp-90">90 วัน</button>
+        <button class="btn btn-secondary btn-sm" onclick="setAnaDatePreset('180')"    id="adp-180">180 วัน</button>
+        <button class="btn btn-secondary btn-sm" onclick="setAnaDatePreset('365')"    id="adp-365">1 ปี</button>
+        <button class="btn btn-secondary btn-sm" onclick="setAnaDatePreset('all')"    id="adp-all" style="color:var(--orange);border-color:var(--orange)">ทั้งหมด</button>
+      </div>
+
+      <div style="width:1px;height:24px;background:var(--border)"></div>
+
+      <!-- Year + Month -->
+      <select class="form-control btn-sm" id="ana-year" style="width:100px" onchange="onAnaYearChange()">
+        <option value="">ทุกปี</option>
+      </select>
+      <select class="form-control btn-sm" id="ana-month" style="width:110px" onchange="clearAnaPreset();renderWRAnalytics()">
+        <option value="">ทุกเดือน</option>
+        <option value="01">มกราคม</option><option value="02">กุมภาพันธ์</option>
+        <option value="03">มีนาคม</option><option value="04">เมษายน</option>
+        <option value="05">พฤษภาคม</option><option value="06">มิถุนายน</option>
+        <option value="07">กรกฎาคม</option><option value="08">สิงหาคม</option>
+        <option value="09">กันยายน</option><option value="10">ตุลาคม</option>
+        <option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
+      </select>
+
+      <div style="width:1px;height:24px;background:var(--border)"></div>
+
+      <!-- Custom Range -->
+      <span style="font-size:11px;color:var(--text3);white-space:nowrap">กำหนดเอง:</span>
+      <input class="form-control btn-sm ff-m" id="ana-date-from" type="date" style="width:130px" onchange="clearAnaPreset();renderWRAnalytics()">
+      <span style="font-size:11px;color:var(--text3)">ถึง</span>
+      <input class="form-control btn-sm ff-m" id="ana-date-to" type="date" style="width:130px" onchange="clearAnaPreset();renderWRAnalytics()">
+      <button class="btn btn-secondary btn-sm" onclick="clearAnaDateFilter()" title="ล้าง">✕</button>
+
+      <!-- Active label -->
+      <span id="ana-date-label" style="font-size:11px;color:var(--orange);font-weight:600;white-space:nowrap"></span>
     </div>
   </div>
 
@@ -3032,12 +3074,93 @@ function showCostSummary(){
 function groupByKey(arr,key){const m={};arr.forEach(r=>{const k=(r[key]||'Unknown').toString().trim()||'Unknown';if(!m[k])m[k]=[];m[k].push(r);});return m;}
 function calcGroupStats(rows){const closed=rows.filter(r=>r.status==='closed');const withMttr=closed.filter(r=>parseFloat(r.mttrHours||r.mttr)>0);const totalMttr=withMttr.reduce((s,r)=>s+(parseFloat(r.mttrHours||r.mttr)||0),0);const avgMttr=withMttr.length?totalMttr/withMttr.length:null;return{total:rows.length,closed:closed.length,withMttr:withMttr.length,avgMttr,totalMttr};}
 
+// ════ ANALYTICS DATE FILTER FUNCTIONS ════
+function populateAnaYearFilter(){
+  const el=document.getElementById('ana-year');
+  if(!el||el.options.length>1) return;
+  const years=new Set();
+  (wrAllData.length?wrAllData:DB.get('wr',[])).forEach(w=>{
+    const d=wrDateStr(w);if(d) years.add(d.slice(0,4));
+  });
+  [...years].sort().reverse().forEach(y=>{
+    const o=document.createElement('option');o.value=y;
+    o.textContent=y+' (พ.ศ. '+(parseInt(y)+543)+')';el.appendChild(o);
+  });
+}
+
+function setAnaDatePreset(preset){
+  const now=new Date();const y=now.getFullYear();const m=now.getMonth()+1;
+  const pad=n=>String(n).padStart(2,'0');
+  let from='',to='',label='';
+  const yEl=document.getElementById('ana-year');if(yEl)yEl.value='';
+  const mEl=document.getElementById('ana-month');if(mEl)mEl.value='';
+  if(preset==='all'){from='';to='';label='';}
+  else if(preset==='month'){from=`${y}-${pad(m)}-01`;to=`${y}-${pad(m)}-${pad(new Date(y,m,0).getDate())}`;label='เดือนนี้';}
+  else if(preset==='q1'){from=`${y}-01-01`;to=`${y}-03-31`;label=`Q1 ${y}`;}
+  else if(preset==='q2'){from=`${y}-04-01`;to=`${y}-06-30`;label=`Q2 ${y}`;}
+  else if(preset==='q3'){from=`${y}-07-01`;to=`${y}-09-30`;label=`Q3 ${y}`;}
+  else if(preset==='q4'){from=`${y}-10-01`;to=`${y}-12-31`;label=`Q4 ${y}`;}
+  else if(['30','90','180','365'].includes(preset)){
+    const days=parseInt(preset);
+    const d=new Date(Date.now()-days*86400000);
+    from=d.toISOString().split('T')[0];to=new Date().toISOString().split('T')[0];
+    label=preset==='365'?'1 ปีล่าสุด':preset+' วันล่าสุด';
+  }
+  const fEl=document.getElementById('ana-date-from');if(fEl)fEl.value=from;
+  const tEl=document.getElementById('ana-date-to');if(tEl)tEl.value=to;
+  const lEl=document.getElementById('ana-date-label');if(lEl)lEl.textContent=label?`🗓 ${label}`:'';
+  document.querySelectorAll('#ana-date-presets button').forEach(b=>b.classList.remove('btn-primary'));
+  if(preset!=='all'){const el=document.getElementById('adp-'+preset);if(el)el.classList.add('btn-primary');}
+  renderWRAnalytics();
+}
+
+function onAnaYearChange(){
+  clearAnaPreset();renderWRAnalytics();
+}
+
+function clearAnaPreset(){
+  document.querySelectorAll('#ana-date-presets button').forEach(b=>b.classList.remove('btn-primary'));
+}
+
+function clearAnaDateFilter(){
+  ['ana-date-from','ana-date-to'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['ana-year','ana-month'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const lEl=document.getElementById('ana-date-label');if(lEl)lEl.textContent='';
+  clearAnaPreset();
+  renderWRAnalytics();
+}
+
 function getAnalyticsData(){
-  const branch=document.getElementById('ana-branch')?.value||'';
-  const period=parseInt(document.getElementById('ana-period')?.value)||0;
+  populateAnaYearFilter();
+  const branch   = document.getElementById('ana-branch')?.value||'';
+  const year     = document.getElementById('ana-year')?.value||'';
+  const month    = document.getElementById('ana-month')?.value||'';
+  const dateFrom = document.getElementById('ana-date-from')?.value||'';
+  const dateTo   = document.getElementById('ana-date-to')?.value||'';
+
+  // Update label for year/month
+  if(year||month){
+    const lEl=document.getElementById('ana-date-label');
+    if(lEl){
+      const mNames=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+      const mLabel=month?mNames[parseInt(month)]:'';
+      const yLabel=year?year+' (พ.ศ. '+(parseInt(year)+543)+')':'';
+      lEl.textContent=`🗓 ${mLabel} ${yLabel}`.trim();
+    }
+  }
+
   let data=wrAllData.length?wrAllData:DB.get('wr',[]);
   if(branch) data=data.filter(w=>(w.branchName||w.branch||'')===branch);
-  if(period>0){const cutoff=new Date(Date.now()-period*86400000);data=data.filter(w=>{const d=parseDate(w.openDate||w.date||'');return d&&d>=cutoff;});}
+
+  data=data.filter(w=>{
+    const ds=wrDateStr(w); // YYYY-MM-DD
+    if(!ds) return true; // ถ้าไม่มีวันที่ ให้ผ่าน
+    if(year  && !ds.startsWith(year)) return false;
+    if(month && !ds.startsWith((year||ds.slice(0,4))+'-'+month)) return false;
+    if(dateFrom && ds<dateFrom) return false;
+    if(dateTo   && ds>dateTo)   return false;
+    return true;
+  });
   return data;
 }
 
